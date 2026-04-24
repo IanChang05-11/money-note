@@ -266,6 +266,120 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
 .quick-filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
 .record-count-note { font-size: 12px; color: var(--text-3); margin-top: 8px; text-align: center; }
 
+
+/* App-like polish + dark mode */
+:root { color-scheme: light; }
+body.dark {
+  --bg: #0f1115;
+  --surface: #181b22;
+  --border: rgba(255,255,255,0.08);
+  --border-md: rgba(255,255,255,0.16);
+  --text: #f5f6f8;
+  --text-2: #b7bcc8;
+  --text-3: #7d8491;
+  --green-light: rgba(29,158,117,.16);
+  --red-light: rgba(216,90,48,.16);
+  --blue-light: rgba(59,125,216,.16);
+  --purple-light: rgba(127,119,221,.18);
+  --amber-light: rgba(186,117,23,.18);
+  --teal-light: rgba(29,158,117,.16);
+  color-scheme: dark;
+}
+body.dark .hero,
+body.dark .record-summary-card { background: linear-gradient(135deg,#232734 0%,#11141b 100%); }
+body.dark .form-input,
+body.dark .amount-input,
+body.dark .record-select,
+body.dark .api-input { background:#11141b; color:var(--text); }
+body.dark .bottom-nav,
+body.dark .topbar { box-shadow: 0 0 0 0.5px var(--border); }
+body.dark .period-tab.active,
+body.dark .seg-btn.active-exp,
+body.dark .seg-btn.active-inc,
+body.dark .seg-btn.active-sav,
+body.dark .seg-btn.active-twd,
+body.dark .seg-btn.active-jpy { background:#232734; }
+
+#app, .card, .form-card, .settings-card, .chart-card, .record-filter-card, .bottom-nav, .topbar, .entry, .big-btn, .filter-btn, .quick-filter-btn, .record-summary-card, .savings-hero {
+  transition: background-color .22s ease, color .22s ease, border-color .22s ease, transform .16s ease, opacity .16s ease, box-shadow .22s ease;
+}
+.panel.active { animation: panelIn .22s ease both; }
+@keyframes panelIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+.entry { animation: itemIn .18s ease both; }
+@keyframes itemIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+.big-btn:active, .filter-btn:active, .quick-filter-btn:active, .nav-btn:active, .nav-center-wrap:active, .entry:active { transform: scale(.985); }
+
+.app-loading {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  background: rgba(245,244,240,.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+body.dark .app-loading { background: rgba(15,17,21,.72); }
+.app-loading.show { display: flex; }
+.loading-card {
+  min-width: 170px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: .5px solid var(--border-md);
+  box-shadow: 0 12px 34px rgba(0,0,0,.16);
+  text-align: center;
+  color: var(--text);
+}
+.spinner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 3px solid var(--border-md);
+  border-top-color: var(--blue);
+  margin: 0 auto 10px;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-title { font-size: 14px; font-weight: 700; }
+.loading-sub { font-size: 12px; color: var(--text-3); margin-top: 3px; }
+
+.inline-loading {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.inline-loading::before {
+  content:'';
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  border:2px solid currentColor;
+  border-top-color:transparent;
+  animation: spin .75s linear infinite;
+}
+
+.theme-row-icon { font-size: 20px; }
+.refresh-fab {
+  position: fixed;
+  right: calc(50% - 205px + 14px);
+  bottom: calc(var(--nav-h) + 18px);
+  z-index: 120;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: .5px solid var(--border-md);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 8px 18px rgba(0,0,0,.14);
+  font-size: 20px;
+  cursor: pointer;
+}
+.refresh-fab.syncing { animation: pulseFab 1s infinite; }
+@keyframes pulseFab { 0%,100%{transform:scale(1)} 50%{transform:scale(.94)} }
+@media (max-width: 430px) { .refresh-fab { right: 14px; } }
+
 </style>
 </head>
 <body>
@@ -489,6 +603,14 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
           <p style="margin-top:8px;font-size:12px;color:var(--text-3)">即使隱藏金額，記錄仍會持續累計。</p>
         </div>
         <div class="settings-card">
+          <h2>🌙 外觀模式</h2>
+          <p>切換淺色 / 暗黑模式，會自動記住設定。</p>
+          <div class="sync-status-row">
+            <span class="sync-status-label"><span class="theme-row-icon" id="theme-icon">☀️</span> 暗黑模式</span>
+            <div class="toggle" id="dark-toggle" onclick="toggleDarkMode()"><div class="toggle-knob"></div></div>
+          </div>
+        </div>
+        <div class="settings-card">
           <h2>📘 Notion 同步</h2>
           <p>免費自動把每筆記錄同步到你的 Notion 資料庫。</p>
           <div class="sync-status-row">
@@ -532,6 +654,8 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
 </div>
 
 <div class="toast" id="toast"></div>
+<button class="refresh-fab" id="refresh-fab" onclick="refreshFromNotion()" title="重新同步">↻</button>
+<div class="app-loading" id="app-loading"><div class="loading-card"><div class="spinner"></div><div class="loading-title" id="loading-title">同步中</div><div class="loading-sub" id="loading-sub">正在更新 Notion 資料</div></div></div>
 
 <script>
 const CATS_EXP=[{n:'餐飲',i:'🍜'},{n:'交通',i:'🚌'},{n:'購物',i:'🛍️'},{n:'娛樂',i:'🎮'},{n:'醫療',i:'💊'},{n:'居家',i:'🏠'},{n:'通訊',i:'📱'},{n:'其他',i:'📌'}];
@@ -545,6 +669,9 @@ let recFormCur='TWD',recFormType='expense',recFormCat='居家',editingRecId=null
 let nextId=1,nextRecId=1,entries=[],recurring=[];
 let notionToken='',notionDbId='',notionEnabled=true;
 let savingsCardEnabled=false,savingsVisible=true;
+let darkMode=false;
+let appBusy=0;
+let autoRefreshTimer=null;
 let chartPeriod='week';
 
 function showToast(msg,type){
@@ -554,6 +681,47 @@ function showToast(msg,type){
   setTimeout(()=>{el.className='toast';},2500);
 }
 
+function setLoading(on,title='同步中',sub='正在更新 Notion 資料'){
+  const overlay=document.getElementById('app-loading');
+  const titleEl=document.getElementById('loading-title');
+  const subEl=document.getElementById('loading-sub');
+  if(!overlay)return;
+  if(on)appBusy++; else appBusy=Math.max(0,appBusy-1);
+  if(titleEl)titleEl.textContent=title;
+  if(subEl)subEl.textContent=sub;
+  overlay.className='app-loading'+(appBusy>0?' show':'');
+}
+
+function setSyncVisual(state,text){
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-text');
+  const fab=document.getElementById('refresh-fab');
+  if(dot)dot.className='sync-dot '+(state||'');
+  if(txt)txt.textContent=text||'Notion';
+  if(fab)fab.className='refresh-fab'+(state==='loading'?' syncing':'');
+}
+
+function applyTheme(){
+  document.body.className=darkMode?'dark':'';
+  const toggle=document.getElementById('dark-toggle');
+  const icon=document.getElementById('theme-icon');
+  if(toggle)toggle.className='toggle'+(darkMode?' on':'');
+  if(icon)icon.textContent=darkMode?'🌙':'☀️';
+  const meta=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if(meta)meta.setAttribute('content',darkMode?'black-translucent':'default');
+}
+
+function toggleDarkMode(){
+  darkMode=!darkMode;
+  localStorage.setItem('darkMode',darkMode?'1':'0');
+  applyTheme();
+  showToast(darkMode?'已切換暗黑模式':'已切換淺色模式','success');
+}
+
+async function refreshFromNotion(){
+  return await loadFromNotion(true);
+}
+
 function loadData(){
   try{
     notionToken=localStorage.getItem('notionToken')||'';
@@ -561,6 +729,7 @@ function loadData(){
     notionEnabled=localStorage.getItem('notionEnabled')!=='0';
     savingsCardEnabled=localStorage.getItem('savingsCardEnabled')==='1';
     savingsVisible=localStorage.getItem('savingsVisible')!=='0';
+    darkMode=localStorage.getItem('darkMode')==='1';
     chartPeriod=localStorage.getItem('chartPeriod')||'week';
     const r=parseFloat(localStorage.getItem('rate'));
     if(r>0)rate=r;
@@ -839,16 +1008,20 @@ async function saveRecurring(){
   showToast('固定支出同步中...');
 
   if(notionEnabled){
+    setLoading(true,'新增固定項目','正在寫入 Notion');
+    setSyncVisual('loading','同步中');
     const ok=await syncEntry(entry);
     if(ok){
       entry.notionSynced=true;
       saveData();
-      await loadFromNotion();
+      await loadFromNotion(false);
       showToast('固定支出已新增到 Notion','success');
     }else{
       updateSyncPill();
+      setSyncVisual('err','同步失敗');
       showToast('固定支出同步失敗','error');
     }
+    setLoading(false);
   }else{
     showToast('已新增到本機，尚未同步 Notion','success');
   }
@@ -1039,7 +1212,8 @@ function updateSyncPill(){
     const pending=entries.filter(e=>!e.notionSynced).length;
     const dot=document.getElementById('sync-dot');
     const txt=document.getElementById('sync-text');
-    if(pending===0){dot.className='sync-dot ok';txt.textContent='已同步';}
+    if(appBusy>0){dot.className='sync-dot loading';txt.textContent='同步中';}
+    else if(pending===0){dot.className='sync-dot ok';txt.textContent='已同步';}
     else{dot.className='sync-dot';txt.textContent=pending+' 筆待同步';}
   }else pill.style.display='none';
 }
@@ -1059,6 +1233,7 @@ function goTab(t){
     document.getElementById('notion-toggle').className='toggle'+(notionEnabled?' on':'');
     document.getElementById('savings-toggle').className='toggle'+(savingsCardEnabled?' on':'');
     document.getElementById('savings-visible-toggle').className='toggle'+(savingsVisible?' on':'');
+    applyTheme();
   }
 }
 
@@ -1113,10 +1288,17 @@ async function addEntry(){
   if(formType==='savings'&&!savingsCardEnabled){savingsCardEnabled=true;localStorage.setItem('savingsCardEnabled','1');}
   renderAll();
   if(notionEnabled){
-    syncEntry(entry).then(ok=>{
-      if(ok){entry.notionSynced=true;saveData();renderAll();updateSyncPill();showToast('已同步到 Notion','success');}
-      else{updateSyncPill();showToast('Notion 同步失敗','error');}
-    });
+    setLoading(true,'新增中','正在寫入 Notion');
+    setSyncVisual('loading','同步中');
+    syncEntry(entry).then(async ok=>{
+      if(ok){
+        entry.notionSynced=true;
+        saveData();
+        await loadFromNotion(false);
+        showToast('已同步到 Notion','success');
+      }
+      else{updateSyncPill();setSyncVisual('err','同步失敗');showToast('Notion 同步失敗','error');}
+    }).finally(()=>setLoading(false));
   }else showToast('已新增','success');
   goTab('home');
 }
@@ -1130,6 +1312,8 @@ async function delEntry(id){
 
   if(notionEnabled && entry.notionPageId){
     showToast('正在從 Notion 刪除...');
+    setLoading(true,'刪除中','正在同步刪除 Notion 資料');
+    setSyncVisual('loading','同步中');
     try{
       const res=await fetch('/api/notion',{
         method:'POST',
@@ -1145,16 +1329,21 @@ async function delEntry(id){
 
       if(!res.ok){
         showToast('Notion 刪除失敗，資料未刪除','error');
+        setSyncVisual('err','同步失敗');
         return;
       }
 
-      await loadFromNotion();
+      await loadFromNotion(false);
+      setSyncVisual('ok','已同步');
       showToast('已從 Notion 刪除','success');
       return;
     }catch(err){
       console.error(err);
       showToast('刪除失敗，請確認網路','error');
+      setSyncVisual('err','同步失敗');
       return;
+    }finally{
+      setLoading(false);
     }
   }
 
@@ -1320,7 +1509,9 @@ function setFilter(f){
   renderRecords();
 }
 
-async function loadFromNotion(){
+async function loadFromNotion(showOverlay=false){
+  if(showOverlay)setLoading(true,'同步中','正在從 Notion 讀取最新資料');
+  setSyncVisual('loading','同步中');
   try{
     const res = await fetch('/api/notion', {
       method: 'POST',
@@ -1341,6 +1532,7 @@ async function loadFromNotion(){
       renderAll();
       renderRecords();
       updateSyncPill();
+      setSyncVisual('err','同步失敗');
       return false;
     }
 
@@ -1369,6 +1561,7 @@ async function loadFromNotion(){
     renderAll();
     renderRecords();
     updateSyncPill();
+    setSyncVisual('ok','已同步');
     return true;
   }catch(e){
     console.error(e);
@@ -1379,7 +1572,10 @@ async function loadFromNotion(){
     renderAll();
     renderRecords();
     updateSyncPill();
+    setSyncVisual('err','同步失敗');
     return false;
+  }finally{
+    if(showOverlay)setLoading(false);
   }
 }
 
@@ -1413,6 +1609,8 @@ async function syncAll(){
   const pending=entries.filter(e=>!e.notionSynced);
   if(!pending.length){showToast('全部已同步 ✓','success');return;}
   showToast('同步中 (0/'+pending.length+')...');
+  setLoading(true,'批次同步','正在寫入 Notion');
+  setSyncVisual('loading','同步中');
   let ok=0,fail=0;
   for(let i=0;i<pending.length;i++){
     const success=await syncEntry(pending[i]);
@@ -1420,8 +1618,9 @@ async function syncAll(){
     showToast('同步中 ('+(i+1)+'/'+pending.length+')...');
   }
   saveData();renderAll();renderRecords();updateSyncPill();
-  if(fail===0)showToast('同步完成 ✓ ('+ok+' 筆)','success');
-  else showToast('成功 '+ok+'，失敗 '+fail,'error');
+  if(fail===0){setSyncVisual('ok','已同步');showToast('同步完成 ✓ ('+ok+' 筆)','success');}
+  else{setSyncVisual('err','同步失敗');showToast('成功 '+ok+'，失敗 '+fail,'error');}
+  setLoading(false);
 }
 
 function toggleNotion(){
@@ -1433,6 +1632,7 @@ function toggleNotion(){
 
 async function saveNotion(){
   showToast('測試連線中...');
+  setLoading(true,'測試連線','正在確認 Notion 連線');
   try{
     const res = await fetch('/api/notion', {
       method: 'POST',
@@ -1447,7 +1647,7 @@ async function saveNotion(){
       document.getElementById('notion-toggle').className='toggle on';
       showToast('連線成功 ✓','success');
       updateSyncPill();
-      await loadFromNotion();
+      await loadFromNotion(false);
     }else{
       const text=await res.text();
       console.error(text);
@@ -1456,6 +1656,8 @@ async function saveNotion(){
   }catch(e){
     console.error(e);
     showToast('連線失敗，請確認網路','error');
+  }finally{
+    setLoading(false);
   }
 }
 
@@ -1497,14 +1699,25 @@ function clearData(){
 
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
 loadData();
+applyTheme();
 document.querySelectorAll('.period-tab').forEach(b=>{b.className='period-tab'+(b.dataset.p===chartPeriod?' active':'');});
 renderCatGrid();
 renderRecCatGrid();
 fetchRate();
-loadFromNotion().then(()=>{
+loadFromNotion(true).then(()=>{
   renderAll();
   renderRecords();
 });
+
+window.addEventListener('focus',()=>{
+  if(notionEnabled)loadFromNotion(false);
+});
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden && notionEnabled)loadFromNotion(false);
+});
+autoRefreshTimer=setInterval(()=>{
+  if(!document.hidden && notionEnabled && appBusy===0)loadFromNotion(false);
+},30000);
 </script>
 </body>
 </html>
