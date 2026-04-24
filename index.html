@@ -162,8 +162,8 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
 .cat-tile-ico { font-size: 22px; }
 .cat-tile-lbl { font-size: 11px; font-weight: 600; }
 .big-btn { width: 100%; height: 50px; border-radius: var(--radius); border: none; font-size: 16px; font-family: 'Noto Sans TC', sans-serif; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-.center-btn { display:block; margin:14px auto; width:90%; max-width:320px; text-align:center; border-radius:12px; }
 .big-btn:active { opacity: 0.8; }
+.center-btn { display:block; margin:14px auto; width:90%; max-width:320px; text-align:center; border-radius:12px; }
 .big-btn.blue { background: var(--blue); color: #fff; }
 .big-btn.green { background: var(--green); color: #fff; }
 .big-btn.purple { background: var(--purple); color: #fff; }
@@ -408,13 +408,13 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
         </div>
         <div class="settings-card">
           <h2>📘 Notion 同步</h2>
-          <p>Token 與 Database ID 已由 Vercel 環境變數管理。新增記錄後會自動同步到 Notion。</p>
+          <p>免費自動把每筆記錄同步到你的 Notion 資料庫。</p>
           <div class="sync-status-row">
-            <span class="sync-status-label">啟用自動同步</span>
+            <span class="sync-status-label">啟用同步</span>
             <div class="toggle" id="notion-toggle" onclick="toggleNotion()"><div class="toggle-knob"></div></div>
           </div>
-          <button class="big-btn purple center-btn" onclick="saveNotion()">測試 Notion 連線</button>
-          <button class="big-btn center-btn" style="background:var(--bg);color:var(--text);border:0.5px solid var(--border-md)" onclick="syncAll()">🔄 同步所有未上傳記錄</button>
+          <button class="big-btn purple center-btn" onclick="saveNotion()">測試 Notion 連線 <span class="save-badge" id="notion-badge">✓ 連線成功</span></button>
+          <button class="big-btn center-btn" style="background:var(--bg);color:var(--text);margin-top:10px;border:0.5px solid var(--border-md)" onclick="syncAll()">🔄 同步所有未上傳記錄</button>
         </div>
         <div class="settings-card">
           <h2>💱 匯率設定</h2>
@@ -490,7 +490,7 @@ function loadData(){
     if(recSaved)recurring=JSON.parse(recSaved);
     const recKid=parseInt(localStorage.getItem('nextRecId')||'1');
     nextRecId=Math.max(recKid,recurring.reduce((m,r)=>Math.max(m,r.id),0)+1);
-  }catch(e){entries=[];nextId=1;recurring=[];nextRecId=1;}
+  }catch(e){loadDemo();}
 }
 
 function loadDemo(){
@@ -687,42 +687,8 @@ function getDaysInMonth(y,m){return new Date(y,m+1,0).getDate();}
 function makeMonthKey(y,m){return y+'-'+String(m+1).padStart(2,'0');}
 
 function processRecurring(){
-  const today=new Date();
-  const todayY=today.getFullYear(),todayM=today.getMonth(),todayD=today.getDate();
-  let added=0;let addedNames=[];
-  recurring.forEach(r=>{
-    if(!r.active)return;
-    if(!r.history)r.history={};
-    const startY=r.startYear||todayY;
-    const startM=r.startMonth!==undefined?r.startMonth:todayM;
-    let y=startY,m=startM;
-    while(y<todayY||(y===todayY&&m<=todayM)){
-      const monthKey=makeMonthKey(y,m);
-      if(!r.history[monthKey]){
-        const daysInMonth=getDaysInMonth(y,m);
-        const useDay=Math.min(r.day,daysInMonth);
-        const isCurrentMonth=(y===todayY&&m===todayM);
-        if(!isCurrentMonth||todayD>=useDay){
-          const dateStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(useDay).padStart(2,'0');
-          const twd=r.currency==='JPY'?Math.round(r.amount*rate):r.amount;
-          const recType=r.type||'expense';
-          const entry={id:nextId++,type:recType,desc:r.name,cat:r.cat,amount:r.amount,currency:r.currency,twd,date:dateStr,recurringId:r.id,notionSynced:false};
-          entries.unshift(entry);
-          r.history[monthKey]=entry.id;
-          added++;
-          if(!addedNames.includes(r.name))addedNames.push(r.name);
-        }
-      }
-      m++;if(m>11){m=0;y++;}
-    }
-  });
-  if(added>0){
-    saveData();
-    if(notionEnabled){
-      entries.filter(e=>e.recurringId&&!e.notionSynced).forEach(e=>{syncEntry(e).then(ok=>{if(ok){e.notionSynced=true;saveData();updateSyncPill();}});});
-    }
-    showAutoBanner(added,addedNames);
-  }
+  // Notion is the source of truth. Fixed expenses are managed by Notion Checkbox「是否固定」.
+  return;
 }
 
 function showAutoBanner(count,names){
@@ -757,9 +723,61 @@ function renderRecCatGrid(){
   document.getElementById('rec-cat-grid').innerHTML=cats.map(c=>`<div class="cat-tile ${c.n===recFormCat?'active':''}" onclick="selectRecCat('${c.n}')"><div class="cat-tile-ico">${c.i}</div><div class="cat-tile-lbl">${c.n}</div></div>`).join('');
 }
 
-function saveRecurring(){
-  showToast('固定支出請在 Notion 中新增，並勾選「是否固定」','error');
-  return;
+async function saveRecurring(){
+  const name=document.getElementById('rec-name').value.trim();
+  const amt=parseFloat(document.getElementById('rec-amount').value);
+  const day=parseInt(document.getElementById('rec-day').value);
+  if(!name||!amt||amt<=0||!day||day<1||day>31){showToast('請完整填寫所有欄位','error');return;}
+
+  const today=new Date();
+  const y=today.getFullYear();
+  const m=today.getMonth();
+  const useDay=Math.min(day,getDaysInMonth(y,m));
+  const dateStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(useDay).padStart(2,'0');
+  const twd=recFormCur==='JPY'?Math.round(amt*rate):amt;
+
+  const entry={
+    id:nextId++,
+    type:recFormType,
+    desc:name,
+    cat:recFormCat,
+    amount:amt,
+    currency:recFormCur,
+    twd:twd,
+    date:dateStr,
+    isRecurring:true,
+    notionSynced:false
+  };
+
+  entries.unshift(entry);
+  saveData();
+  renderAll();
+  renderRecList();
+  showToast('固定支出同步中...');
+
+  if(notionEnabled){
+    const ok=await syncEntry(entry);
+    if(ok){
+      entry.notionSynced=true;
+      saveData();
+      await loadFromNotion();
+      showToast('固定支出已新增到 Notion','success');
+    }else{
+      updateSyncPill();
+      showToast('固定支出同步失敗','error');
+    }
+  }else{
+    showToast('已新增到本機，尚未同步 Notion','success');
+  }
+
+  document.getElementById('rec-name').value='';
+  document.getElementById('rec-amount').value='';
+  document.getElementById('rec-day').value='';
+  if(recFormType==='savings'&&!savingsCardEnabled){
+    savingsCardEnabled=true;localStorage.setItem('savingsCardEnabled','1');
+    document.getElementById('savings-toggle').className='toggle on';
+    renderSavings();
+  }
 }
 
 function editRec(id){
@@ -804,27 +822,55 @@ function delRec(id){
 
 function renderRecList(){
   const el=document.getElementById('rec-list');
-  if(el)el.innerHTML='<div class="empty"><p>固定支出改由 Notion 管理<br>請在 Notion 將「是否固定」打勾</p></div>';
+  const fixed=entries.filter(e=>e.isRecurring);
+  if(!fixed.length){
+    el.innerHTML='<div class="empty"><p>尚未新增固定項目<br>可在上方表單新增，會同步到 Notion</p></div>';
+    return;
+  }
+  el.innerHTML=fixed.map(e=>{
+    const cur=e.currency==='JPY'?'¥':'NT$';
+    const sub=e.currency==='JPY'?`<div class="rec-amt-sub">≈ NT$${e.twd.toLocaleString()}</div>`:'';
+    const isSav=e.type==='savings';
+    const typeLbl=isSav?'<span class="badge badge-savings">🏦 存款</span>':'<span class="badge" style="background:#fdf0eb;color:#8b3520">💸 支出</span>';
+    return `<div class="recurring-card">
+      <div class="rec-top">
+        <div class="rec-ico" style="${isSav?'background:var(--teal-light)':''}">${ICONS[e.cat]||'📌'}</div>
+        <div class="rec-info">
+          <div class="rec-name">${e.desc} <span class="rec-status on">Notion</span></div>
+          <div class="rec-day">${typeLbl} 固定項目 · ${e.cat} · ${e.date}</div>
+        </div>
+        <div>
+          <div class="rec-amt ${isSav?'savings':''}">${cur}${e.amount.toLocaleString()}</div>
+          ${sub}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function renderRecSummary(){
   const el=document.getElementById('rec-summary');
-  const fixed=entries.filter(e=>e.isRecurring&&e.type==='expense');
-
+  const fixed=entries.filter(e=>e.isRecurring);
   if(!fixed.length){
-    el.innerHTML='<div class="empty"><p>Notion 中沒有固定支出<br>請在 Notion 將「是否固定」打勾</p></div>';
+    el.innerHTML='<div class="empty"><p style="margin-bottom:8px">尚未設定固定項目</p><button class="big-btn amber" onclick="goTab(\'recurring\')">+ 新增固定支出</button></div>';
     return;
   }
 
-  const total=fixed.reduce((s,e)=>s+e.twd,0);
+  const expTotal=fixed.filter(e=>e.type==='expense').reduce((s,e)=>s+e.twd,0);
+  const savTotal=fixed.filter(e=>e.type==='savings').reduce((s,e)=>s+e.twd,0);
+
   let html='<div style="padding:14px 14px 8px">';
-  html+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span style="font-size:13px;color:var(--text-2)">每月固定支出</span><span style="font-size:16px;font-weight:700;color:var(--red)">NT$${total.toLocaleString()}</span></div>`;
+  if(expTotal>0)html+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span style="font-size:13px;color:var(--text-2)">每月固定支出</span><span style="font-size:16px;font-weight:700;color:var(--red)">NT$${expTotal.toLocaleString()}</span></div>`;
+  if(savTotal>0)html+=`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:var(--text-2)">每月固定存款</span><span style="font-size:16px;font-weight:700;color:var(--teal)">NT$${savTotal.toLocaleString()}</span></div>`;
   html+='</div>';
-  html+=fixed.map(e=>{
+
+  html+=fixed.slice(0,5).map(e=>{
     const cur=e.currency==='JPY'?'¥':'NT$';
+    const isSav=e.type==='savings';
     const sub=e.currency==='JPY'?`<div class="entry-twd">≈ NT$${e.twd.toLocaleString()}</div>`:'';
-    return `<div class="entry"><div class="entry-ico recurring">${ICONS[e.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${e.desc}</div><div class="entry-meta">每月固定 · ${e.cat}</div></div><div class="entry-right"><div class="entry-amt expense">${cur}${e.amount.toLocaleString()}</div>${sub}</div></div>`;
+    return `<div class="entry"><div class="entry-ico ${isSav?'savings':'recurring'}">${ICONS[e.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${e.desc}</div><div class="entry-meta">固定項目 · ${e.cat}</div></div><div class="entry-right"><div class="entry-amt ${isSav?'savings':'expense'}">${cur}${e.amount.toLocaleString()}</div>${sub}</div></div>`;
   }).join('');
+  if(fixed.length>5)html+=`<div style="padding:10px 14px;text-align:center;font-size:12px;color:var(--text-3)">還有 ${fixed.length-5} 筆...</div>`;
   el.innerHTML=html;
 }
 
@@ -976,7 +1022,7 @@ async function addEntry(){
   const date=document.getElementById('f-date').value;
   if(!amt||amt<=0||!date){showToast('請填寫金額和日期','error');return;}
   const twd=formCur==='JPY'?Math.round(amt*rate):amt;
-  const entry={id:nextId++,type:formType,desc,cat:formCat,amount:amt,currency:formCur,twd,date,notionSynced:false};
+  const entry={id:nextId++,type:formType,desc,cat:formCat,amount:amt,currency:formCur,twd,date,isRecurring:false,notionSynced:false};
   entries.unshift(entry);saveData();
   document.getElementById('f-amount').value='';
   document.getElementById('f-desc').value='';
@@ -1029,12 +1075,12 @@ function renderCats(){
 function entryHTML(e,showDel){
   const cur=e.currency==='JPY'?'¥':'NT$';
   const curBadge=e.currency==='JPY'?'<span class="badge badge-jpy">¥</span>':'';
-  const recBadge=(e.isRecurring||e.recurringId)?'<span class="badge badge-recurring">🔁 固定</span>':'';
+  const recBadge=e.isRecurring?'<span class="badge badge-recurring">🔁 固定</span>':'';
   const syncBadge=(notionEnabled)?(e.notionSynced?'<span class="badge badge-synced">☁ 已同步</span>':'<span class="badge badge-pending">⏱ 待同步</span>'):'';
   const jpyLine=e.currency==='JPY'?`<div class="entry-twd">≈ NT$${e.twd.toLocaleString()}</div>`:'';
   const del=showDel?`<button class="del-btn" onclick="delEntry(${e.id})">×</button>`:'';
   let iconClass=e.type;
-  if((e.isRecurring||e.recurringId)&&e.type!=='savings')iconClass='recurring';
+  if(e.isRecurring&&e.type!=='savings')iconClass='recurring';
   if(e.type==='savings')iconClass='savings';
   const sign=e.type==='income'?'+':e.type==='savings'?'→':'-';
   return `<div class="entry"><div class="entry-ico ${iconClass}">${ICONS[e.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${e.desc}</div><div class="entry-meta">${e.cat} · ${e.date} ${curBadge} ${recBadge} ${syncBadge}</div></div><div class="entry-right"><div class="entry-amt ${e.type}">${sign}${cur}${e.amount.toLocaleString()}</div>${jpyLine}</div>${del}</div>`;
@@ -1103,12 +1149,8 @@ async function loadFromNotion(){
     });
 
     nextId = entries.length + 1;
-    recurring = [];
-    nextRecId = 1;
     localStorage.setItem('entries', JSON.stringify(entries));
     localStorage.setItem('nextId', String(nextId));
-    localStorage.removeItem('recurring');
-    localStorage.removeItem('nextRecId');
 
     renderAll();
     renderRecords();
@@ -1130,7 +1172,7 @@ async function loadFromNotion(){
 async function syncEntry(e){
   try{
     const typeMap={'income':'收入','expense':'支出','savings':'存款'};
-    const body={properties:{'名稱':{title:[{text:{content:e.desc}}]},'類型':{select:{name:typeMap[e.type]||'支出'}},'金額':{number:e.amount},'幣別':{select:{name:e.currency}},'台幣金額':{number:e.twd},'類別':{select:{name:e.cat}},'日期':{date:{start:e.date}},'是否固定':{checkbox:!!e.isRecurring}}};
+    const body={properties:{'名稱':{title:[{text:{content:e.desc||'未命名'}}]},'類型':{select:{name:typeMap[e.type]||'支出'}},'金額':{number:Number(e.amount)||0},'幣別':{select:{name:e.currency||'TWD'}},'台幣金額':{number:Number(e.twd)||0},'類別':{select:{name:e.cat||'其他'}},'日期':{date:{start:e.date||new Date().toISOString().slice(0,10)}},'是否固定':{checkbox:!!e.isRecurring}}};
 const res = await fetch('/api/notion', {
   method: 'POST',
   headers: {
@@ -1220,7 +1262,7 @@ function exportCSV(){
   if(!entries.length){showToast('沒有記錄可匯出','error');return;}
   const typeMap={'income':'收入','expense':'支出','savings':'存款'};
   const headers=['日期','類型','類別','描述','金額','幣別','台幣金額','固定項目'];
-  const rows=entries.map(e=>[e.date,typeMap[e.type]||'支出',e.cat,e.desc,e.amount,e.currency,e.twd,(e.isRecurring||e.recurringId)?'是':'否']);
+  const rows=entries.map(e=>[e.date,typeMap[e.type]||'支出',e.cat,e.desc,e.amount,e.currency,e.twd,e.recurringId?'是':'否']);
   const csv='\ufeff'+headers.join(',')+'\n'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -1234,8 +1276,7 @@ function clearData(){
   if(!confirm('確定要刪除所有本機記錄嗎？此操作無法復原！'))return;
   entries=[];nextId=1;
   recurring.forEach(r=>{r.history={};});
-  saveData();
-  loadFromNotion();
+  saveData();processRecurring();
   renderAll();renderRecords();updateSyncPill();
   showToast('已清除所有記錄','success');
 }
