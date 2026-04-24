@@ -1121,15 +1121,50 @@ async function addEntry(){
   goTab('home');
 }
 
-function delEntry(id){
-  if(!confirm('確定刪除這筆記錄？'))return;
+async function delEntry(id){
   const entry=entries.find(e=>e.id===id);
-  if(entry&&entry.recurringId){
-    const r=recurring.find(x=>x.id===entry.recurringId);
-    if(r&&r.history){Object.keys(r.history).forEach(k=>{if(r.history[k]===id)delete r.history[k];});}
+  if(!entry)return;
+
+  const label=entry.desc||'這筆記錄';
+  if(!confirm(`確定要刪除「${label}」嗎？\n\n這會同步刪除 Notion 裡的資料。`))return;
+
+  if(notionEnabled && entry.notionPageId){
+    showToast('正在從 Notion 刪除...');
+    try{
+      const res=await fetch('/api/notion',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          action:'delete',
+          pageId:entry.notionPageId
+        })
+      });
+
+      const text=await res.text();
+      console.log(text);
+
+      if(!res.ok){
+        showToast('Notion 刪除失敗，資料未刪除','error');
+        return;
+      }
+
+      await loadFromNotion();
+      showToast('已從 Notion 刪除','success');
+      return;
+    }catch(err){
+      console.error(err);
+      showToast('刪除失敗，請確認網路','error');
+      return;
+    }
   }
+
+  // 尚未同步到 Notion 的資料，只刪除本機暫存
   entries=entries.filter(e=>e.id!==id);
-  saveData();renderAll();renderRecords();updateSyncPill();
+  saveData();
+  renderAll();
+  renderRecords();
+  updateSyncPill();
+  showToast('已刪除本機暫存資料','success');
 }
 
 function renderAll(){
