@@ -51,8 +51,6 @@ html, body { height: 100%; background: var(--bg); font-family: 'Noto Sans TC', s
 .hero-stat-val { font-size: 17px; font-weight: 700; }
 .hero-stat-val.inc { color: #6ee7c0; }
 .hero-stat-val.exp { color: #ffaa80; }
-
-/* Chart card */
 .chart-card { background: var(--surface); border-radius: var(--radius); border: 0.5px solid var(--border); padding: 16px; }
 .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .chart-title { font-size: 15px; font-weight: 700; }
@@ -73,8 +71,6 @@ html, body { height: 100%; background: var(--bg); font-family: 'Noto Sans TC', s
 .chart-tooltip::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); border: 4px solid transparent; border-top-color: var(--text); }
 .chart-legend { display: flex; gap: 14px; justify-content: center; margin-top: 10px; font-size: 12px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; vertical-align: middle; }
-
-/* Savings hero */
 .savings-hero { margin: 0 12px 14px; background: linear-gradient(135deg, #1D9E75 0%, #0F6E56 100%); border-radius: 20px; padding: 22px; color: #fff; position: relative; overflow: hidden; }
 .savings-hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .savings-hero-label { font-size: 13px; opacity: 0.85; font-weight: 500; display: flex; align-items: center; gap: 6px; }
@@ -87,7 +83,6 @@ html, body { height: 100%; background: var(--bg); font-family: 'Noto Sans TC', s
 .savings-stat-label { font-size: 11px; opacity: 0.75; margin-bottom: 4px; }
 .savings-stat-val { font-size: 16px; font-weight: 700; }
 .savings-stat-val.hidden { letter-spacing: 3px; opacity: 0.6; }
-
 .section { margin: 0 12px 14px; }
 .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .section-title { font-size: 13px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -407,22 +402,20 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
         </div>
         <div class="settings-card">
           <h2>📘 Notion 同步</h2>
-          <p>免費自動把每筆記錄同步到你的 Notion 資料庫。</p>
+          <p>Token 與 Database ID 已改由 Vercel 環境變數管理。新增記錄後會自動同步到 Notion。</p>
           <div class="sync-status-row">
-            <span class="sync-status-label">啟用同步</span>
-            <div class="toggle" id="notion-toggle" onclick="toggleNotion()"><div class="toggle-knob"></div></div>
+            <span class="sync-status-label">啟用自動同步</span>
+            <div class="toggle on" id="notion-toggle" onclick="toggleNotion()"><div class="toggle-knob"></div></div>
           </div>
-          <div class="notion-info-box" style="margin-bottom:10px">Token 與 Database ID 已改由 Vercel Environment Variables 管理。此頁不再保存金鑰。開啟網頁時會以 Notion 為主，自動載入最新資料。</div>
           <button class="big-btn purple" onclick="saveNotion()">測試 Notion 連線 <span class="save-badge" id="notion-badge">✓ 連線成功</span></button>
           <button class="big-btn" style="background:var(--bg);color:var(--text);margin-top:10px;border:0.5px solid var(--border-md)" onclick="syncAll()">🔄 同步所有未上傳記錄</button>
           <div style="margin-top:12px">
             <div class="notion-info-box">
-              <strong>📋 設定步驟：</strong><br>
-              1. 到 <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a> 建立 Integration 取得 Token<br>
-              2. 建立資料庫，欄位需包含：<br>
-              &nbsp;&nbsp;<strong>名稱</strong>(Title) · <strong>類型</strong>(Select：收入/支出/存款) · <strong>金額</strong>(Number) · <strong>幣別</strong>(Select) · <strong>台幣金額</strong>(Number) · <strong>類別</strong>(Select) · <strong>日期</strong>(Date)<br>
-              3. 資料庫頁面右上 <strong>•••</strong> → <strong>Connections</strong> → 加入 Integration<br>
-              4. 複製網址中 Database ID
+              <strong>📋 注意：</strong><br>
+              1. Notion Token 與 Database ID 請設定在 Vercel Environment Variables。<br>
+              2. 本頁資料以 Notion 為主，Notion 沒有的資料不會顯示。<br>
+              3. 欄位需包含：<br>
+              &nbsp;&nbsp;<strong>名稱</strong>(Title) · <strong>類型</strong>(Select：收入/支出/存款) · <strong>金額</strong>(Number) · <strong>幣別</strong>(Select) · <strong>台幣金額</strong>(Number) · <strong>類別</strong>(Select) · <strong>日期</strong>(Date)
             </div>
           </div>
         </div>
@@ -443,8 +436,8 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
         </div>
         <div class="settings-card">
           <h2>🗑️ 清除資料</h2>
-          <p>刪除所有本機記帳記錄（Notion 資料庫不受影響）。</p>
-          <button class="big-btn" style="background:var(--red-light);color:var(--red);font-weight:700" onclick="clearData()">清除所有記錄</button>
+          <p>刪除本機暫存資料（Notion 資料庫不受影響）。</p>
+          <button class="big-btn" style="background:var(--red-light);color:var(--red);font-weight:700" onclick="clearData()">清除本機暫存</button>
         </div>
       </div>
     </div>
@@ -470,7 +463,7 @@ const ICONS={};[...CATS_EXP,...CATS_INC,...CATS_SAV].forEach(c=>{if(!ICONS[c.n])
 let rate=0.22,formCur='TWD',formType='expense',formCat='餐飲',recFilter='all';
 let recFormCur='TWD',recFormType='expense',recFormCat='居家',editingRecId=null;
 let nextId=1,nextRecId=1,entries=[],recurring=[];
-let notionToken='',notionDbId='',notionEnabled=true;
+let notionEnabled=true;
 let savingsCardEnabled=false,savingsVisible=true;
 let chartPeriod='week';
 
@@ -483,8 +476,6 @@ function showToast(msg,type){
 
 function loadData(){
   try{
-    notionToken=localStorage.getItem('notionToken')||'';
-    notionDbId=localStorage.getItem('notionDbId')||'';
     notionEnabled=localStorage.getItem('notionEnabled')!=='0';
     savingsCardEnabled=localStorage.getItem('savingsCardEnabled')==='1';
     savingsVisible=localStorage.getItem('savingsVisible')!=='0';
@@ -493,60 +484,52 @@ function loadData(){
     if(r>0)rate=r;
     const saved=localStorage.getItem('entries');
     if(saved)entries=JSON.parse(saved);
-    // Notion is the source of truth; do not auto-load demo data.
     const kid=parseInt(localStorage.getItem('nextId')||'1');
     nextId=Math.max(kid,entries.reduce((m,e)=>Math.max(m,e.id),0)+1);
-    const recSaved=localStorage.getItem('recurring');
-    if(recSaved)recurring=JSON.parse(recSaved);
-    const recKid=parseInt(localStorage.getItem('nextRecId')||'1');
-    nextRecId=Math.max(recKid,recurring.reduce((m,r)=>Math.max(m,r.id),0)+1);
-  }catch(e){loadDemo();}
+  }catch(e){entries=[];nextId=1;}
 }
-async function loadFromNotion() {
-  try {
+async function loadFromNotion(){
+  try{
     const res = await fetch('/api/notion', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({ action: "list" })
     });
 
     const data = await res.json();
 
-    if (!res.ok || !data.results) {
+    if(!res.ok || !data.results){
       console.error(data);
       showToast('讀取 Notion 失敗', 'error');
       return false;
     }
 
-    const notionEntries = data.results
-      .map((p, idx) => {
-        const props = p.properties || {};
+    const notionEntries = data.results.map((p, idx) => {
+      const props = p.properties || {};
+      const title = props['名稱']?.title?.[0]?.plain_text || '';
+      const amount = props['金額']?.number || 0;
+      const date = props['日期']?.date?.start || '';
 
-        const title = props['名稱']?.title?.[0]?.plain_text || '';
-        const amount = props['金額']?.number || 0;
-        const date = props['日期']?.date?.start || '';
+      if(!title && !amount && !date) return null;
 
-        if (!title && !amount && !date) return null;
+      const typeName = props['類型']?.select?.name || '支出';
 
-        const typeName = props['類型']?.select?.name || '支出';
-
-        return {
-          id: idx + 1,
-          notionPageId: p.id,
-          type:
-            typeName === '收入' ? 'income' :
-            typeName === '存款' ? 'savings' :
-            'expense',
-          desc: title || '未命名',
-          cat: props['類別']?.select?.name || '其他',
-          amount: amount,
-          currency: props['幣別']?.select?.name || 'TWD',
-          twd: props['台幣金額']?.number || amount,
-          date: date || new Date().toISOString().slice(0, 10),
-          notionSynced: true
-        };
-      })
-      .filter(Boolean);
+      return {
+        id: idx + 1,
+        notionPageId: p.id,
+        type:
+          typeName === '收入' ? 'income' :
+          typeName === '存款' ? 'savings' :
+          'expense',
+        desc: title || '未命名',
+        cat: props['類別']?.select?.name || '其他',
+        amount: amount,
+        currency: props['幣別']?.select?.name || 'TWD',
+        twd: props['台幣金額']?.number || amount,
+        date: date || new Date().toISOString().slice(0,10),
+        notionSynced: true
+      };
+    }).filter(Boolean);
 
     entries = notionEntries;
     recurring = [];
@@ -563,40 +546,21 @@ async function loadFromNotion() {
     updateSyncPill();
 
     return true;
-  } catch (e) {
+  }catch(e){
     console.error(e);
     showToast('讀取 Notion 失敗', 'error');
     return false;
   }
-}
-function loadDemo(){
-  const today=new Date();
-  const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const daysAgo=n=>{const d=new Date(today);d.setDate(d.getDate()-n);return ymd(d);};
-  entries=[
-    {id:1,type:'income',desc:'四月薪水',cat:'薪水',amount:45000,currency:'TWD',twd:45000,date:daysAgo(20)},
-    {id:2,type:'expense',desc:'超市採購',cat:'購物',amount:1280,currency:'TWD',twd:1280,date:daysAgo(2)},
-    {id:3,type:'expense',desc:'コンビニ',cat:'餐飲',amount:540,currency:'JPY',twd:Math.round(540*rate),date:daysAgo(1)},
-    {id:4,type:'expense',desc:'捷運月票',cat:'交通',amount:1280,currency:'TWD',twd:1280,date:daysAgo(5)},
-    {id:5,type:'expense',desc:'電影票',cat:'娛樂',amount:320,currency:'TWD',twd:320,date:daysAgo(3)},
-    {id:6,type:'expense',desc:'午餐',cat:'餐飲',amount:180,currency:'TWD',twd:180,date:ymd(today)},
-    {id:7,type:'expense',desc:'咖啡',cat:'餐飲',amount:120,currency:'TWD',twd:120,date:daysAgo(1)},
-    {id:8,type:'expense',desc:'藥妝店',cat:'醫療',amount:850,currency:'TWD',twd:850,date:daysAgo(4)},
-  ];
-  nextId=9;
 }
 
 function saveData(){
   try{
     localStorage.setItem('entries',JSON.stringify(entries));
     localStorage.setItem('nextId',String(nextId));
-    localStorage.setItem('recurring',JSON.stringify(recurring));
-    localStorage.setItem('nextRecId',String(nextRecId));
     if(rate)localStorage.setItem('rate',String(rate));
   }catch(e){}
 }
 
-// -------- Chart --------
 function setPeriod(p){
   chartPeriod=p;
   localStorage.setItem('chartPeriod',p);
@@ -610,44 +574,23 @@ function getPeriodBuckets(period){
   if(period==='day'){
     for(let i=6;i>=0;i--){
       const d=new Date(today);d.setDate(d.getDate()-i);
-      buckets.push({
-        key:d.toISOString().slice(0,10),
-        label:['日','一','二','三','四','五','六'][d.getDay()],
-        fullLabel:(d.getMonth()+1)+'/'+d.getDate(),
-        expense:0,income:0
-      });
+      buckets.push({key:d.toISOString().slice(0,10),label:['日','一','二','三','四','五','六'][d.getDay()],fullLabel:(d.getMonth()+1)+'/'+d.getDate(),expense:0,income:0});
     }
   }else if(period==='week'){
     for(let i=5;i>=0;i--){
       const weekEnd=new Date(today);weekEnd.setDate(today.getDate()-i*7);
       const weekStart=new Date(weekEnd);weekStart.setDate(weekEnd.getDate()-6);
-      buckets.push({
-        start:weekStart.toISOString().slice(0,10),
-        end:weekEnd.toISOString().slice(0,10),
-        label:i===0?'本週':i+'週前',
-        fullLabel:(weekStart.getMonth()+1)+'/'+weekStart.getDate()+'～'+(weekEnd.getMonth()+1)+'/'+weekEnd.getDate(),
-        expense:0,income:0
-      });
+      buckets.push({start:weekStart.toISOString().slice(0,10),end:weekEnd.toISOString().slice(0,10),label:i===0?'本週':i+'週前',fullLabel:(weekStart.getMonth()+1)+'/'+weekStart.getDate()+'～'+(weekEnd.getMonth()+1)+'/'+weekEnd.getDate(),expense:0,income:0});
     }
   }else if(period==='month'){
     for(let i=5;i>=0;i--){
       const d=new Date(today.getFullYear(),today.getMonth()-i,1);
-      buckets.push({
-        key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),
-        label:(d.getMonth()+1)+'月',
-        fullLabel:d.getFullYear()+'年'+(d.getMonth()+1)+'月',
-        expense:0,income:0
-      });
+      buckets.push({key:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'),label:(d.getMonth()+1)+'月',fullLabel:d.getFullYear()+'年'+(d.getMonth()+1)+'月',expense:0,income:0});
     }
   }else if(period==='year'){
     for(let i=4;i>=0;i--){
       const y=today.getFullYear()-i;
-      buckets.push({
-        key:String(y),
-        label:String(y),
-        fullLabel:y+'年',
-        expense:0,income:0
-      });
+      buckets.push({key:String(y),label:String(y),fullLabel:y+'年',expense:0,income:0});
     }
   }
   return buckets;
@@ -679,14 +622,11 @@ function renderChart(){
   const maxVal=Math.max(...buckets.map(b=>Math.max(b.expense,b.income)),1);
   const barW=chartW/buckets.length*0.35;
   const groupW=chartW/buckets.length;
-
   const total=buckets.reduce((s,b)=>s+b.expense,0);
   const totalInc=buckets.reduce((s,b)=>s+b.income,0);
   document.getElementById('chart-total').textContent='NT$'+total.toLocaleString();
-
   const periodLabel={day:'過去 7 天',week:'過去 6 週',month:'過去 6 個月',year:'過去 5 年'}[chartPeriod];
   document.getElementById('chart-sub').textContent=periodLabel+' · 總支出 NT$'+total.toLocaleString()+' · 總收入 NT$'+totalInc.toLocaleString();
-
   const current=buckets[buckets.length-1];
   const previous=buckets[buckets.length-2];
   const cmpEl=document.getElementById('chart-compare');
@@ -697,7 +637,6 @@ function renderChart(){
     else if(pct>0){cmpEl.textContent='↑ '+pct+'%';cmpEl.className='chart-compare up';}
     else{cmpEl.textContent='↓ '+Math.abs(pct)+'%';cmpEl.className='chart-compare down';}
   }else cmpEl.textContent='';
-
   let yLabels='';
   for(let i=0;i<=2;i++){
     const y=padT+chartH-(chartH*i/2);
@@ -705,7 +644,6 @@ function renderChart(){
     yLabels+=`<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>`;
     yLabels+=`<text x="${padL-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#999" font-family="Noto Sans TC">${val>=1000?(val/1000).toFixed(0)+'k':val}</text>`;
   }
-
   let bars='',labels='';
   buckets.forEach((b,i)=>{
     const groupX=padL+i*groupW;
@@ -716,16 +654,12 @@ function renderChart(){
     const incX=centerX+1;
     const expY=padT+chartH-expH;
     const incY=padT+chartH-incH;
-
     if(b.expense>0)bars+=`<rect x="${expX}" y="${expY}" width="${barW}" height="${expH}" fill="#D85A30" rx="2" data-idx="${i}" data-type="expense" class="chart-bar" style="cursor:pointer"/>`;
     if(b.income>0)bars+=`<rect x="${incX}" y="${incY}" width="${barW}" height="${incH}" fill="#1D9E75" rx="2" data-idx="${i}" data-type="income" class="chart-bar" style="cursor:pointer"/>`;
-
     labels+=`<text x="${centerX}" y="${H-padB+15}" text-anchor="middle" font-size="10" fill="#666" font-family="Noto Sans TC" font-weight="500">${b.label}</text>`;
   });
-
   const svg=document.getElementById('chart-svg');
   svg.innerHTML=yLabels+bars+labels;
-
   svg.querySelectorAll('.chart-bar').forEach(bar=>{
     bar.addEventListener('click',function(e){
       e.stopPropagation();
@@ -743,7 +677,6 @@ function renderChart(){
 function showChartTooltip(el,text){
   const tip=document.getElementById('chart-tooltip');
   const wrap=document.getElementById('chart-wrap');
-  const svgRect=document.getElementById('chart-svg').getBoundingClientRect();
   const barRect=el.getBoundingClientRect();
   const wrapRect=wrap.getBoundingClientRect();
   tip.textContent=text;
@@ -758,199 +691,33 @@ function hideChartTooltip(){
   document.getElementById('chart-tooltip').className='chart-tooltip';
 }
 
-// -------- Recurring --------
 function getDaysInMonth(y,m){return new Date(y,m+1,0).getDate();}
 function makeMonthKey(y,m){return y+'-'+String(m+1).padStart(2,'0');}
-
-function processRecurring(){
-  const today=new Date();
-  const todayY=today.getFullYear(),todayM=today.getMonth(),todayD=today.getDate();
-  let added=0;let addedNames=[];
-  recurring.forEach(r=>{
-    if(!r.active)return;
-    if(!r.history)r.history={};
-    const startY=r.startYear||todayY;
-    const startM=r.startMonth!==undefined?r.startMonth:todayM;
-    let y=startY,m=startM;
-    while(y<todayY||(y===todayY&&m<=todayM)){
-      const monthKey=makeMonthKey(y,m);
-      if(!r.history[monthKey]){
-        const daysInMonth=getDaysInMonth(y,m);
-        const useDay=Math.min(r.day,daysInMonth);
-        const isCurrentMonth=(y===todayY&&m===todayM);
-        if(!isCurrentMonth||todayD>=useDay){
-          const dateStr=y+'-'+String(m+1).padStart(2,'0')+'-'+String(useDay).padStart(2,'0');
-          const twd=r.currency==='JPY'?Math.round(r.amount*rate):r.amount;
-          const recType=r.type||'expense';
-          const entry={id:nextId++,type:recType,desc:r.name,cat:r.cat,amount:r.amount,currency:r.currency,twd,date:dateStr,recurringId:r.id,notionSynced:false};
-          entries.unshift(entry);
-          r.history[monthKey]=entry.id;
-          added++;
-          if(!addedNames.includes(r.name))addedNames.push(r.name);
-        }
-      }
-      m++;if(m>11){m=0;y++;}
-    }
-  });
-  if(added>0){
-    saveData();
-    if(notionEnabled){
-      entries.filter(e=>e.recurringId&&!e.notionSynced).forEach(e=>{syncEntry(e).then(ok=>{if(ok){e.notionSynced=true;saveData();updateSyncPill();}});});
-    }
-    showAutoBanner(added,addedNames);
-  }
-}
-
-function showAutoBanner(count,names){
-  const banner=document.getElementById('auto-banner');
-  banner.style.display='flex';
-  document.getElementById('auto-banner-text').innerHTML=`已自動新增 <strong>${count} 筆</strong>固定項目：${names.slice(0,3).join('、')}${names.length>3?'...':''}`;
-  setTimeout(()=>{banner.style.display='none';},8000);
-}
-
-function setRecType(t){
-  recFormType=t;
-  document.getElementById('rec-type-exp').className='seg-btn'+(t==='expense'?' active-exp':'');
-  document.getElementById('rec-type-sav').className='seg-btn'+(t==='savings'?' active-sav':'');
-  document.getElementById('rec-cat-label').textContent=t==='savings'?'存款類別':'類別';
-  if(t==='savings'&&!CATS_SAV.find(c=>c.n===recFormCat))recFormCat=CATS_SAV[0].n;
-  if(t==='expense'&&!CATS_EXP.find(c=>c.n===recFormCat))recFormCat=CATS_EXP[5].n;
-  renderRecCatGrid();
-  document.getElementById('rec-save-btn').className='big-btn '+(t==='savings'?'teal':'amber');
-}
-
-function setRecCur(c){
-  recFormCur=c;
-  document.getElementById('rec-cur-twd').className='seg-btn'+(c==='TWD'?' active-twd':'');
-  document.getElementById('rec-cur-jpy').className='seg-btn'+(c==='JPY'?' active-jpy':'');
-  document.getElementById('rec-amount-prefix').textContent=c==='JPY'?'¥':'NT$';
-}
-
+function processRecurring(){return;}
+function showAutoBanner(count,names){return;}
+function setRecType(t){recFormType=t;}
+function setRecCur(c){recFormCur=c;}
 function selectRecCat(n){recFormCat=n;renderRecCatGrid();}
-
 function renderRecCatGrid(){
   const cats=recFormType==='savings'?CATS_SAV:CATS_EXP;
-  document.getElementById('rec-cat-grid').innerHTML=cats.map(c=>`<div class="cat-tile ${c.n===recFormCat?'active':''}" onclick="selectRecCat('${c.n}')"><div class="cat-tile-ico">${c.i}</div><div class="cat-tile-lbl">${c.n}</div></div>`).join('');
+  const grid=document.getElementById('rec-cat-grid');
+  if(!grid)return;
+  grid.innerHTML=cats.map(c=>`<div class="cat-tile ${c.n===recFormCat?'active':''}" onclick="selectRecCat('${c.n}')"><div class="cat-tile-ico">${c.i}</div><div class="cat-tile-lbl">${c.n}</div></div>`).join('');
 }
-
-function saveRecurring(){
-  const name=document.getElementById('rec-name').value.trim();
-  const amt=parseFloat(document.getElementById('rec-amount').value);
-  const day=parseInt(document.getElementById('rec-day').value);
-  if(!name||!amt||amt<=0||!day||day<1||day>31){showToast('請完整填寫所有欄位','error');return;}
-  if(editingRecId){
-    const r=recurring.find(x=>x.id===editingRecId);
-    if(r){r.name=name;r.amount=amt;r.day=day;r.currency=recFormCur;r.cat=recFormCat;r.type=recFormType;}
-    showToast('已更新','success');cancelRecEdit();
-  }else{
-    const today=new Date();
-    recurring.push({id:nextRecId++,name,amount:amt,currency:recFormCur,day,cat:recFormCat,type:recFormType,active:true,history:{},startYear:today.getFullYear(),startMonth:today.getMonth()});
-    showToast('已新增','success');
-    document.getElementById('rec-name').value='';
-    document.getElementById('rec-amount').value='';
-    document.getElementById('rec-day').value='';
-  }
-  saveData();processRecurring();renderRecList();renderAll();
-  if(recFormType==='savings'&&!savingsCardEnabled){
-    savingsCardEnabled=true;localStorage.setItem('savingsCardEnabled','1');
-    document.getElementById('savings-toggle').className='toggle on';
-    renderSavings();
-  }
-}
-
-function editRec(id){
-  const r=recurring.find(x=>x.id===id);if(!r)return;
-  editingRecId=id;
-  document.getElementById('rec-form-title').textContent='編輯項目';
-  document.getElementById('rec-save-btn').textContent='儲存變更';
-  document.getElementById('rec-cancel-btn').style.display='block';
-  document.getElementById('rec-name').value=r.name;
-  document.getElementById('rec-amount').value=r.amount;
-  document.getElementById('rec-day').value=r.day;
-  setRecType(r.type||'expense');
-  setRecCur(r.currency);
-  recFormCat=r.cat;
-  renderRecCatGrid();
-  document.getElementById('rec-form-card').scrollIntoView({behavior:'smooth'});
-}
-
-function cancelRecEdit(){
-  editingRecId=null;
-  document.getElementById('rec-form-title').textContent='+ 新增固定項目';
-  document.getElementById('rec-save-btn').textContent='新增';
-  document.getElementById('rec-cancel-btn').style.display='none';
-  document.getElementById('rec-name').value='';
-  document.getElementById('rec-amount').value='';
-  document.getElementById('rec-day').value='';
-  setRecType('expense');setRecCur('TWD');recFormCat='居家';renderRecCatGrid();
-}
-
-function toggleRecActive(id){
-  const r=recurring.find(x=>x.id===id);if(!r)return;
-  r.active=!r.active;saveData();
-  if(r.active)processRecurring();
-  renderRecList();renderAll();
-}
-
-function delRec(id){
-  if(!confirm('確定要刪除這筆固定項目？已產生的記錄不會被刪除。'))return;
-  recurring=recurring.filter(r=>r.id!==id);
-  saveData();renderRecList();renderAll();
-}
-
+function saveRecurring(){showToast('固定項目已改為 Notion 資料為主','error');}
+function editRec(id){}
+function cancelRecEdit(){}
+function toggleRecActive(id){}
+function delRec(id){}
 function renderRecList(){
   const el=document.getElementById('rec-list');
-  if(!recurring.length){el.innerHTML='<div class="empty"><p>尚未新增</p></div>';return;}
-  el.innerHTML=recurring.map(r=>{
-    const cur=r.currency==='JPY'?'¥':'NT$';
-    const twd=r.currency==='JPY'?Math.round(r.amount*rate):r.amount;
-    const subAmt=r.currency==='JPY'?'≈ NT$'+twd.toLocaleString():'';
-    const isSav=r.type==='savings';
-    const typeLbl=isSav?'<span class="badge badge-savings">🏦 存款</span>':'<span class="badge" style="background:#fdf0eb;color:#8b3520">💸 支出</span>';
-    return `<div class="recurring-card">
-      <div class="rec-top">
-        <div class="rec-ico" style="${isSav?'background:var(--teal-light)':''}">${ICONS[r.cat]||'📌'}</div>
-        <div class="rec-info">
-          <div class="rec-name">${r.name} <span class="rec-status ${r.active?'on':'off'}">${r.active?'啟用':'停用'}</span></div>
-          <div class="rec-day">${typeLbl} 每月 ${r.day} 號 · ${r.cat}</div>
-        </div>
-        <div>
-          <div class="rec-amt ${isSav?'savings':''}">${cur}${r.amount.toLocaleString()}</div>
-          ${subAmt?`<div class="rec-amt-sub">${subAmt}</div>`:''}
-        </div>
-      </div>
-      <div class="rec-actions">
-        <button class="rec-action" onclick="editRec(${r.id})">編輯</button>
-        <button class="rec-action" onclick="toggleRecActive(${r.id})">${r.active?'停用':'啟用'}</button>
-        <button class="rec-action danger" onclick="delRec(${r.id})">刪除</button>
-      </div>
-    </div>`;
-  }).join('');
+  if(el)el.innerHTML='<div class="empty"><p>固定項目已改為 Notion 資料為主</p></div>';
 }
-
 function renderRecSummary(){
   const el=document.getElementById('rec-summary');
-  const active=recurring.filter(r=>r.active);
-  if(!active.length){
-    el.innerHTML='<div class="empty"><p style="margin-bottom:8px">尚未設定固定項目</p><button class="big-btn amber" onclick="goTab(\'recurring\')">+ 新增</button></div>';
-    return;
-  }
-  const expTotal=active.filter(r=>(r.type||'expense')==='expense').reduce((s,r)=>s+(r.currency==='JPY'?Math.round(r.amount*rate):r.amount),0);
-  const savTotal=active.filter(r=>r.type==='savings').reduce((s,r)=>s+(r.currency==='JPY'?Math.round(r.amount*rate):r.amount),0);
-  let html='<div style="padding:14px 14px 8px">';
-  if(expTotal>0)html+=`<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px"><span style="font-size:13px;color:var(--text-2)">每月固定支出</span><span style="font-size:16px;font-weight:700;color:var(--red)">NT$${expTotal.toLocaleString()}</span></div>`;
-  if(savTotal>0)html+=`<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:var(--text-2)">每月固定存款</span><span style="font-size:16px;font-weight:700;color:var(--teal)">NT$${savTotal.toLocaleString()}</span></div>`;
-  html+='</div>';
-  html+=active.slice(0,3).map(r=>{
-    const cur=r.currency==='JPY'?'¥':'NT$';
-    const isSav=r.type==='savings';
-    return `<div class="entry"><div class="entry-ico ${isSav?'savings':'recurring'}">${ICONS[r.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${r.name}</div><div class="entry-meta">每月 ${r.day} 號 · ${r.cat}</div></div><div class="entry-right"><div class="entry-amt ${isSav?'savings':'expense'}">${cur}${r.amount.toLocaleString()}</div></div></div>`;
-  }).join('');
-  if(active.length>3)html+=`<div style="padding:10px 14px;text-align:center;font-size:12px;color:var(--text-3)">還有 ${active.length-3} 筆...</div>`;
-  el.innerHTML=html;
+  el.innerHTML = `<div class="empty"><p>固定項目已改為 Notion 資料為主<br>不再讀取本機固定支出設定</p></div>`;
 }
 
-// -------- Savings --------
 function renderSavings(){
   const el=document.getElementById('savings-hero');
   if(!savingsCardEnabled){el.style.display='none';return;}
@@ -981,14 +748,12 @@ function renderSavings(){
     document.getElementById('sav-sub').textContent='金額已隱藏';
   }
 }
-
 function toggleSavingsCard(){
   savingsCardEnabled=!savingsCardEnabled;
   localStorage.setItem('savingsCardEnabled',savingsCardEnabled?'1':'0');
   document.getElementById('savings-toggle').className='toggle'+(savingsCardEnabled?' on':'');
   renderSavings();
 }
-
 function toggleSavingsVisible(){
   savingsVisible=!savingsVisible;
   localStorage.setItem('savingsVisible',savingsVisible?'1':'0');
@@ -996,7 +761,6 @@ function toggleSavingsVisible(){
   renderSavings();
 }
 
-// -------- Rate --------
 async function fetchRate(){
   updateRatePill('loading','更新中...');
   try{
@@ -1019,24 +783,24 @@ async function fetchRate(){
     }catch(err){updateRatePill('err','¥1 ≈ NT$'+rate.toFixed(3));}
   }
 }
-
 function updateRatePill(state,text){
   document.getElementById('rate-dot').className='rate-dot '+state;
   document.getElementById('rate-text').textContent=text;
 }
-
 function updateSyncPill(){
   const pill=document.getElementById('sync-pill');
-  if(notionEnabled){
-    pill.style.display='flex';
-    const pending=entries.filter(e=>!e.notionSynced).length;
-    const dot=document.getElementById('sync-dot');
-    const txt=document.getElementById('sync-text');
-    if(pending===0){dot.className='sync-dot ok';txt.textContent='已同步';}
-    else{dot.className='sync-dot';txt.textContent=pending+' 筆待同步';}
-  }else pill.style.display='none';
+  pill.style.display='flex';
+  const pending=entries.filter(e=>!e.notionSynced).length;
+  const dot=document.getElementById('sync-dot');
+  const txt=document.getElementById('sync-text');
+  if(pending===0){
+    dot.className='sync-dot ok';
+    txt.textContent='已同步';
+  }else{
+    dot.className='sync-dot';
+    txt.textContent=pending+' 筆待同步';
+  }
 }
-
 function goTab(t){
   ['home','add','recurring','records','settings'].forEach(id=>{
     document.getElementById('panel-'+id).className='panel'+(id===t?' active':'');
@@ -1054,7 +818,6 @@ function goTab(t){
     document.getElementById('savings-visible-toggle').className='toggle'+(savingsVisible?' on':'');
   }
 }
-
 function renderCatGrid(){
   let cats;
   if(formType==='income')cats=CATS_INC;
@@ -1064,9 +827,7 @@ function renderCatGrid(){
   document.getElementById('cat-label').textContent=formType==='savings'?'存款類別':'類別';
   document.getElementById('cat-grid').innerHTML=cats.map(c=>`<div class="cat-tile ${c.n===formCat?'active':''}" onclick="selectCat('${c.n}')"><div class="cat-tile-ico">${c.i}</div><div class="cat-tile-lbl">${c.n}</div></div>`).join('');
 }
-
 function selectCat(n){formCat=n;renderCatGrid();}
-
 function setType(t){
   formType=t;
   document.getElementById('type-exp').className='seg-btn'+(t==='expense'?' active-exp':'');
@@ -1074,7 +835,6 @@ function setType(t){
   document.getElementById('type-sav').className='seg-btn'+(t==='savings'?' active-sav':'');
   renderCatGrid();
 }
-
 function setCur(c){
   formCur=c;
   document.getElementById('cur-twd').className='seg-btn'+(c==='TWD'?' active-twd':'');
@@ -1082,7 +842,6 @@ function setCur(c){
   document.getElementById('amount-prefix').textContent=c==='JPY'?'¥':'NT$';
   updateHint();
 }
-
 function updateHint(){
   const amt=parseFloat(document.getElementById('f-amount').value)||0;
   const hint=document.getElementById('twd-hint');
@@ -1091,7 +850,6 @@ function updateHint(){
     document.getElementById('twd-hint-val').textContent=Math.round(amt*rate).toLocaleString();
   }else hint.style.display='none';
 }
-
 async function addEntry(){
   const amt=parseFloat(document.getElementById('f-amount').value);
   const desc=document.getElementById('f-desc').value.trim()||formCat;
@@ -1106,25 +864,24 @@ async function addEntry(){
   if(formType==='savings'&&!savingsCardEnabled){savingsCardEnabled=true;localStorage.setItem('savingsCardEnabled','1');}
   renderAll();
   if(notionEnabled){
-    syncEntry(entry).then(ok=>{
-      if(ok){entry.notionSynced=true;saveData();renderAll();updateSyncPill();showToast('已同步到 Notion','success');}
-      else{updateSyncPill();showToast('Notion 同步失敗','error');}
+    syncEntry(entry).then(async ok=>{
+      if(ok){
+        entry.notionSynced=true;
+        saveData();
+        await loadFromNotion();
+        showToast('已同步到 Notion','success');
+      }else{
+        updateSyncPill();showToast('Notion 同步失敗','error');
+      }
     });
-  }else showToast('已新增','success');
+  }else showToast('已新增本機資料','success');
   goTab('home');
 }
-
 function delEntry(id){
-  if(!confirm('確定刪除這筆記錄？'))return;
-  const entry=entries.find(e=>e.id===id);
-  if(entry&&entry.recurringId){
-    const r=recurring.find(x=>x.id===entry.recurringId);
-    if(r&&r.history){Object.keys(r.history).forEach(k=>{if(r.history[k]===id)delete r.history[k];});}
-  }
+  if(!confirm('確定刪除這筆本機記錄？Notion 資料不會被刪除。'))return;
   entries=entries.filter(e=>e.id!==id);
   saveData();renderAll();renderRecords();updateSyncPill();
 }
-
 function renderAll(){
   const income=entries.filter(e=>e.type==='income').reduce((s,e)=>s+e.twd,0);
   const expense=entries.filter(e=>e.type==='expense').reduce((s,e)=>s+e.twd,0);
@@ -1137,7 +894,6 @@ function renderAll(){
   document.getElementById('s-exp').textContent='NT$'+expense.toLocaleString();
   renderCats();renderRecent();updateSyncPill();renderRecSummary();renderSavings();renderChart();
 }
-
 function renderCats(){
   const map={};
   entries.filter(e=>e.type==='expense').forEach(e=>{map[e.cat]=(map[e.cat]||0)+e.twd;});
@@ -1147,32 +903,26 @@ function renderCats(){
   const max=cats[0][1];
   el.innerHTML=cats.map(([cat,amt])=>`<div class="cat-item"><div class="cat-top"><span>${ICONS[cat]||'📌'} ${cat}</span><span>NT$${amt.toLocaleString()}</span></div><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(amt/max*100)}%"></div></div></div>`).join('');
 }
-
 function entryHTML(e,showDel){
   const cur=e.currency==='JPY'?'¥':'NT$';
   const curBadge=e.currency==='JPY'?'<span class="badge badge-jpy">¥</span>':'';
-  const recBadge=e.recurringId?'<span class="badge badge-recurring">🔁 固定</span>':'';
-  const syncBadge=(notionEnabled)?(e.notionSynced?'<span class="badge badge-synced">☁ 已同步</span>':'<span class="badge badge-pending">⏱ 待同步</span>'):'';
+  const syncBadge=e.notionSynced?'<span class="badge badge-synced">☁ 已同步</span>':'<span class="badge badge-pending">⏱ 待同步</span>';
   const jpyLine=e.currency==='JPY'?`<div class="entry-twd">≈ NT$${e.twd.toLocaleString()}</div>`:'';
   const del=showDel?`<button class="del-btn" onclick="delEntry(${e.id})">×</button>`:'';
   let iconClass=e.type;
-  if(e.recurringId&&e.type!=='savings')iconClass='recurring';
   if(e.type==='savings')iconClass='savings';
   const sign=e.type==='income'?'+':e.type==='savings'?'→':'-';
-  return `<div class="entry"><div class="entry-ico ${iconClass}">${ICONS[e.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${e.desc}</div><div class="entry-meta">${e.cat} · ${e.date} ${curBadge} ${recBadge} ${syncBadge}</div></div><div class="entry-right"><div class="entry-amt ${e.type}">${sign}${cur}${e.amount.toLocaleString()}</div>${jpyLine}</div>${del}</div>`;
+  return `<div class="entry"><div class="entry-ico ${iconClass}">${ICONS[e.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${e.desc}</div><div class="entry-meta">${e.cat} · ${e.date} ${curBadge} ${syncBadge}</div></div><div class="entry-right"><div class="entry-amt ${e.type}">${sign}${cur}${e.amount.toLocaleString()}</div>${jpyLine}</div>${del}</div>`;
 }
-
 function renderRecent(){
   const el=document.getElementById('recent-card');
   const recent=entries.slice(0,6);
   el.innerHTML=recent.length?recent.map(e=>entryHTML(e,false)).join(''):'<div class="empty"><p>尚無記錄</p></div>';
 }
-
 function renderRecords(){
   const shown=recFilter==='all'?entries:entries.filter(e=>e.type===recFilter);
   document.getElementById('all-list').innerHTML=shown.length?shown.map(e=>entryHTML(e,true)).join(''):'<div class="empty"><p>尚無記錄</p></div>';
 }
-
 function setFilter(f){
   recFilter=f;
   ['all','income','expense','savings'].forEach(id=>{
@@ -1181,97 +931,33 @@ function setFilter(f){
   });
   renderRecords();
 }
-
-async function loadFromNotion(){
+async function syncEntry(e){
   try{
+    const typeMap = {income:'收入',expense:'支出',savings:'存款'};
+    const body = {
+      properties: {
+        '名稱': {title:[{text:{content:e.desc || '未命名'}}]},
+        '類型': {select:{name:typeMap[e.type] || '支出'}},
+        '金額': {number:Number(e.amount) || 0},
+        '幣別': {select:{name:e.currency || 'TWD'}},
+        '台幣金額': {number:Number(e.twd) || 0},
+        '類別': {select:{name:e.cat || '其他'}},
+        '日期': {date:{start:e.date || new Date().toISOString().slice(0,10)}}
+      }
+    };
     const res = await fetch('/api/notion', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ action: 'list' })
+      body: JSON.stringify({action:"add",data:body})
     });
-
     const text = await res.text();
-    let data;
-    try{ data = JSON.parse(text); }catch(e){ data = null; }
-
-    if(!res.ok || !data || !Array.isArray(data.results)){
-      console.error(text || data);
-      showToast('讀取 Notion 失敗', 'error');
-      entries=[];
-      nextId=1;
-      saveData();
-      renderAll();
-      renderRecords();
-      updateSyncPill();
-      return false;
-    }
-
-    entries = data.results.map((p, idx) => {
-      const props = p.properties || {};
-      const typeName = props['類型']?.select?.name || '支出';
-      return {
-        id: idx + 1,
-        notionPageId: p.id,
-        type: typeName === '收入' ? 'income' : typeName === '存款' ? 'savings' : 'expense',
-        desc: props['名稱']?.title?.[0]?.plain_text || '未命名',
-        cat: props['類別']?.select?.name || '其他',
-        amount: props['金額']?.number || 0,
-        currency: props['幣別']?.select?.name || 'TWD',
-        twd: props['台幣金額']?.number || 0,
-        date: props['日期']?.date?.start || new Date().toISOString().slice(0,10),
-        notionSynced: true
-      };
-    });
-
-    nextId = entries.length + 1;
-    localStorage.setItem('entries', JSON.stringify(entries));
-    localStorage.setItem('nextId', String(nextId));
-
-    renderAll();
-    renderRecords();
-    updateSyncPill();
+    console.log(text);
+    if(!res.ok)return false;
     return true;
-  }catch(e){
-    console.error(e);
-    showToast('讀取 Notion 失敗', 'error');
-    entries=[];
-    nextId=1;
-    saveData();
-    renderAll();
-    renderRecords();
-    updateSyncPill();
-    return false;
-  }
-}
-
-async function syncEntry(e){
-  try{
-    const typeMap={'income':'收入','expense':'支出','savings':'存款'};
-    const body={properties:{'名稱':{title:[{text:{content:e.desc}}]},'類型':{select:{name:typeMap[e.type]||'支出'}},'金額':{number:e.amount},'幣別':{select:{name:e.currency}},'台幣金額':{number:e.twd},'類別':{select:{name:e.cat}},'日期':{date:{start:e.date}}}};
-const res = await fetch('/api/notion', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    action: "add",
-    data: body
-  })
-});
-const text = await res.text();
-console.log(text);
-
-if (!res.ok) {
-  return false;
-}
-
-return true;
   }catch(err){console.error(err);return false;}
 }
-
 async function syncAll(){
-  if(!notionEnabled){showToast('請先在設定頁啟用 Notion 同步','error');goTab('settings');return;}
-  const pending=entries.filter(e=>!e.notionSynced);
+  const pending = entries.filter(e => !e.notionSynced);
   if(!pending.length){showToast('全部已同步 ✓','success');return;}
   showToast('同步中 (0/'+pending.length+')...');
   let ok=0,fail=0;
@@ -1280,48 +966,38 @@ async function syncAll(){
     if(success){pending[i].notionSynced=true;ok++;}else fail++;
     showToast('同步中 ('+(i+1)+'/'+pending.length+')...');
   }
-  saveData();renderAll();renderRecords();updateSyncPill();
+  saveData();
+  await loadFromNotion();
   if(fail===0)showToast('同步完成 ✓ ('+ok+' 筆)','success');
   else showToast('成功 '+ok+'，失敗 '+fail,'error');
 }
-
 function toggleNotion(){
   notionEnabled=!notionEnabled;
   localStorage.setItem('notionEnabled',notionEnabled?'1':'0');
   document.getElementById('notion-toggle').className='toggle'+(notionEnabled?' on':'');
   updateSyncPill();renderAll();
 }
-
 async function saveNotion(){
   showToast('測試連線中...');
   try{
     const res = await fetch('/api/notion', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ action: 'test' })
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:"test"})
     });
+    const text=await res.text();
+    console.log(text);
     if(res.ok){
       const badge=document.getElementById('notion-badge');
-      if(badge){badge.style.opacity='1';setTimeout(()=>{badge.style.opacity='0';},2500);}
-      notionEnabled=true;
-      localStorage.setItem('notionEnabled','1');
-      document.getElementById('notion-toggle').className='toggle on';
+      badge.style.opacity='1';setTimeout(()=>{badge.style.opacity='0';},2500);
       showToast('連線成功 ✓','success');
-      updateSyncPill();
       await loadFromNotion();
     }else{
-      const text=await res.text();
-      console.error(text);
       showToast('連線失敗：請檢查 Vercel 環境變數或 Notion 權限','error');
     }
-  }catch(e){
-    console.error(e);
-    showToast('連線失敗，請確認網路','error');
-  }
+  }catch(e){showToast('連線失敗，請確認網路','error');}
 }
-
 function toggleEye(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';}
-
 function saveRate(){
   const r=parseFloat(document.getElementById('rate-input').value);
   if(r>0){
@@ -1332,12 +1008,11 @@ function saveRate(){
     updateRatePill('ok','¥1 = NT$'+r.toFixed(3));
   }else showToast('請輸入有效匯率','error');
 }
-
 function exportCSV(){
   if(!entries.length){showToast('沒有記錄可匯出','error');return;}
   const typeMap={'income':'收入','expense':'支出','savings':'存款'};
-  const headers=['日期','類型','類別','描述','金額','幣別','台幣金額','固定項目'];
-  const rows=entries.map(e=>[e.date,typeMap[e.type]||'支出',e.cat,e.desc,e.amount,e.currency,e.twd,e.recurringId?'是':'否']);
+  const headers=['日期','類型','類別','描述','金額','幣別','台幣金額'];
+  const rows=entries.map(e=>[e.date,typeMap[e.type]||'支出',e.cat,e.desc,e.amount,e.currency,e.twd]);
   const csv='\ufeff'+headers.join(',')+'\n'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -1346,27 +1021,28 @@ function exportCSV(){
   URL.revokeObjectURL(url);
   showToast('已匯出 CSV','success');
 }
-
 function clearData(){
-  if(!confirm('確定要刪除所有本機記錄嗎？此操作無法復原！'))return;
-  entries=[];nextId=1;
-  recurring.forEach(r=>{r.history={};});
-  saveData();processRecurring();
-  renderAll();renderRecords();updateSyncPill();
-  showToast('已清除所有記錄','success');
+  if(!confirm('確定要清除本機暫存嗎？Notion 資料不受影響。'))return;
+  localStorage.removeItem('entries');
+  localStorage.removeItem('nextId');
+  localStorage.removeItem('recurring');
+  localStorage.removeItem('nextRecId');
+  entries=[];nextId=1;recurring=[];nextRecId=1;
+  loadFromNotion();
+  showToast('已清除本機暫存','success');
 }
 
-document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
 loadData();
-document.querySelectorAll('.period-tab').forEach(b=>{b.className='period-tab'+(b.dataset.p===chartPeriod?' active':'');});
-renderCatGrid();
-renderRecCatGrid();
-fetchRate();
-loadFromNotion().then(()=>{
-  processRecurring();
+loadFromNotion().then(() => {
   renderAll();
-  renderRecords();
+  renderCatGrid();
+  renderRecCatGrid();
 });
+document.querySelectorAll('.period-tab').forEach(b => {
+  b.className = 'period-tab' + (b.dataset.p === chartPeriod ? ' active' : '');
+});
+fetchRate();
 </script>
 </body>
 </html>
