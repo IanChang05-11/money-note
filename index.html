@@ -407,19 +407,22 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
         </div>
         <div class="settings-card">
           <h2>📘 Notion 同步</h2>
-          <p>Token 與 Database ID 已改由 Vercel 環境變數管理。新增記錄後會自動同步到 Notion。</p>
+          <p>免費自動把每筆記錄同步到你的 Notion 資料庫。</p>
           <div class="sync-status-row">
-            <span class="sync-status-label">啟用自動同步</span>
+            <span class="sync-status-label">啟用同步</span>
             <div class="toggle" id="notion-toggle" onclick="toggleNotion()"><div class="toggle-knob"></div></div>
           </div>
-          <button class="big-btn purple" onclick="testNotion()">測試 Notion 連線</button>
+          <div class="notion-info-box" style="margin-bottom:10px">Token 與 Database ID 已改由 Vercel Environment Variables 管理。此頁不再保存金鑰。開啟網頁時會以 Notion 為主，自動載入最新資料。</div>
+          <button class="big-btn purple" onclick="saveNotion()">測試 Notion 連線 <span class="save-badge" id="notion-badge">✓ 連線成功</span></button>
           <button class="big-btn" style="background:var(--bg);color:var(--text);margin-top:10px;border:0.5px solid var(--border-md)" onclick="syncAll()">🔄 同步所有未上傳記錄</button>
           <div style="margin-top:12px">
             <div class="notion-info-box">
-              <strong>📋 Vercel 環境變數：</strong><br>
-              <strong>NOTION_TOKEN</strong>：Notion Integration Token<br>
-              <strong>NOTION_DATABASE_ID</strong>：Notion Database ID<br>
-              修改環境變數後，請重新 Redeploy。前端不再保存 Token，較安全。
+              <strong>📋 設定步驟：</strong><br>
+              1. 到 <a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a> 建立 Integration 取得 Token<br>
+              2. 建立資料庫，欄位需包含：<br>
+              &nbsp;&nbsp;<strong>名稱</strong>(Title) · <strong>類型</strong>(Select：收入/支出/存款) · <strong>金額</strong>(Number) · <strong>幣別</strong>(Select) · <strong>台幣金額</strong>(Number) · <strong>類別</strong>(Select) · <strong>日期</strong>(Date)<br>
+              3. 資料庫頁面右上 <strong>•••</strong> → <strong>Connections</strong> → 加入 Integration<br>
+              4. 複製網址中 Database ID
             </div>
           </div>
         </div>
@@ -467,56 +470,9 @@ const ICONS={};[...CATS_EXP,...CATS_INC,...CATS_SAV].forEach(c=>{if(!ICONS[c.n])
 let rate=0.22,formCur='TWD',formType='expense',formCat='餐飲',recFilter='all';
 let recFormCur='TWD',recFormType='expense',recFormCat='居家',editingRecId=null;
 let nextId=1,nextRecId=1,entries=[],recurring=[];
-let notionEnabled=true;
+let notionToken='',notionDbId='',notionEnabled=true;
 let savingsCardEnabled=false,savingsVisible=true;
 let chartPeriod='week';
-  async function loadFromNotion(){
-  try{
-    const res = await fetch('/api/notion', {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ action: "list" })
-    });
-
-    const data = await res.json();
-
-    if(!res.ok || !data.results){
-      console.error(data);
-      return;
-    }
-
-    entries = data.results.map((p, idx) => {
-      const props = p.properties;
-
-      return {
-        id: idx + 1,
-        notionPageId: p.id,
-        type:
-          props['類型']?.select?.name === '收入' ? 'income' :
-          props['類型']?.select?.name === '存款' ? 'savings' :
-          'expense',
-        desc: props['名稱']?.title?.[0]?.plain_text || '未命名',
-        cat: props['類別']?.select?.name || '其他',
-        amount: props['金額']?.number || 0,
-        currency: props['幣別']?.select?.name || 'TWD',
-        twd: props['台幣金額']?.number || 0,
-        date: props['日期']?.date?.start || new Date().toISOString().slice(0,10),
-        notionSynced: true
-      };
-    });
-
-    nextId = entries.length + 1;
-    saveData();
-    renderAll();
-    renderRecords();
-    updateSyncPill();
-
-    showToast('已載入 Notion 最新資料', 'success');
-  }catch(e){
-    console.error(e);
-    showToast('讀取 Notion 失敗', 'error');
-  }
-}
 
 function showToast(msg,type){
   const el=document.getElementById('toast');
@@ -527,6 +483,8 @@ function showToast(msg,type){
 
 function loadData(){
   try{
+    notionToken=localStorage.getItem('notionToken')||'';
+    notionDbId=localStorage.getItem('notionDbId')||'';
     notionEnabled=localStorage.getItem('notionEnabled')!=='0';
     savingsCardEnabled=localStorage.getItem('savingsCardEnabled')==='1';
     savingsVisible=localStorage.getItem('savingsVisible')!=='0';
@@ -535,7 +493,7 @@ function loadData(){
     if(r>0)rate=r;
     const saved=localStorage.getItem('entries');
     if(saved)entries=JSON.parse(saved);
-    if(!entries.length)loadDemo();
+    // Notion is the source of truth; do not auto-load demo data.
     const kid=parseInt(localStorage.getItem('nextId')||'1');
     nextId=Math.max(kid,entries.reduce((m,e)=>Math.max(m,e.id),0)+1);
     const recSaved=localStorage.getItem('recurring');
@@ -1083,7 +1041,7 @@ async function addEntry(){
   renderAll();
   if(notionEnabled){
     syncEntry(entry).then(ok=>{
-      if(ok){entry.notionSynced=true;saveData();renderAll();updateSyncPill();showToast('已自動同步到 Notion','success');}
+      if(ok){entry.notionSynced=true;saveData();renderAll();updateSyncPill();showToast('已同步到 Notion','success');}
       else{updateSyncPill();showToast('Notion 同步失敗','error');}
     });
   }else showToast('已新增','success');
@@ -1128,7 +1086,7 @@ function entryHTML(e,showDel){
   const cur=e.currency==='JPY'?'¥':'NT$';
   const curBadge=e.currency==='JPY'?'<span class="badge badge-jpy">¥</span>':'';
   const recBadge=e.recurringId?'<span class="badge badge-recurring">🔁 固定</span>':'';
-  const syncBadge=notionEnabled?(e.notionSynced?'<span class="badge badge-synced">☁ 已同步</span>':'<span class="badge badge-pending">⏱ 待同步</span>'):'';
+  const syncBadge=(notionEnabled)?(e.notionSynced?'<span class="badge badge-synced">☁ 已同步</span>':'<span class="badge badge-pending">⏱ 待同步</span>'):'';
   const jpyLine=e.currency==='JPY'?`<div class="entry-twd">≈ NT$${e.twd.toLocaleString()}</div>`:'';
   const del=showDel?`<button class="del-btn" onclick="delEntry(${e.id})">×</button>`:'';
   let iconClass=e.type;
@@ -1156,6 +1114,68 @@ function setFilter(f){
     if(btn)btn.className='filter-btn'+(id===f?' active':'');
   });
   renderRecords();
+}
+
+async function loadFromNotion(){
+  try{
+    const res = await fetch('/api/notion', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: 'list' })
+    });
+
+    const text = await res.text();
+    let data;
+    try{ data = JSON.parse(text); }catch(e){ data = null; }
+
+    if(!res.ok || !data || !Array.isArray(data.results)){
+      console.error(text || data);
+      showToast('讀取 Notion 失敗', 'error');
+      entries=[];
+      nextId=1;
+      saveData();
+      renderAll();
+      renderRecords();
+      updateSyncPill();
+      return false;
+    }
+
+    entries = data.results.map((p, idx) => {
+      const props = p.properties || {};
+      const typeName = props['類型']?.select?.name || '支出';
+      return {
+        id: idx + 1,
+        notionPageId: p.id,
+        type: typeName === '收入' ? 'income' : typeName === '存款' ? 'savings' : 'expense',
+        desc: props['名稱']?.title?.[0]?.plain_text || '未命名',
+        cat: props['類別']?.select?.name || '其他',
+        amount: props['金額']?.number || 0,
+        currency: props['幣別']?.select?.name || 'TWD',
+        twd: props['台幣金額']?.number || 0,
+        date: props['日期']?.date?.start || new Date().toISOString().slice(0,10),
+        notionSynced: true
+      };
+    });
+
+    nextId = entries.length + 1;
+    localStorage.setItem('entries', JSON.stringify(entries));
+    localStorage.setItem('nextId', String(nextId));
+
+    renderAll();
+    renderRecords();
+    updateSyncPill();
+    return true;
+  }catch(e){
+    console.error(e);
+    showToast('讀取 Notion 失敗', 'error');
+    entries=[];
+    nextId=1;
+    saveData();
+    renderAll();
+    renderRecords();
+    updateSyncPill();
+    return false;
+  }
 }
 
 async function syncEntry(e){
@@ -1206,25 +1226,32 @@ function toggleNotion(){
   updateSyncPill();renderAll();
 }
 
-async function testNotion(){
+async function saveNotion(){
   showToast('測試連線中...');
   try{
     const res = await fetch('/api/notion', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ action: "test" })
+      body: JSON.stringify({ action: 'test' })
     });
-    const text = await res.text();
-    console.log(text);
     if(res.ok){
-      showToast('Notion 連線成功 ✓','success');
+      const badge=document.getElementById('notion-badge');
+      if(badge){badge.style.opacity='1';setTimeout(()=>{badge.style.opacity='0';},2500);}
+      notionEnabled=true;
+      localStorage.setItem('notionEnabled','1');
+      document.getElementById('notion-toggle').className='toggle on';
+      showToast('連線成功 ✓','success');
       updateSyncPill();
+      await loadFromNotion();
     }else{
-      let msg='請檢查 Vercel 環境變數或 Notion 權限';
-      try{msg=JSON.parse(text).message||msg;}catch(e){}
-      showToast('連線失敗：'+msg,'error');
+      const text=await res.text();
+      console.error(text);
+      showToast('連線失敗：請檢查 Vercel 環境變數或 Notion 權限','error');
     }
-  }catch(e){showToast('連線失敗，請確認網路','error');}
+  }catch(e){
+    console.error(e);
+    showToast('連線失敗，請確認網路','error');
+  }
 }
 
 function toggleEye(id){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';}
@@ -1264,9 +1291,16 @@ function clearData(){
 }
 
 document.getElementById('f-date').value=new Date().toISOString().split('T')[0];
-loadData();processRecurring();
+loadData();
 document.querySelectorAll('.period-tab').forEach(b=>{b.className='period-tab'+(b.dataset.p===chartPeriod?' active':'');});
-renderAll();renderCatGrid();renderRecCatGrid();fetchRate();
+renderCatGrid();
+renderRecCatGrid();
+fetchRate();
+loadFromNotion().then(()=>{
+  processRecurring();
+  renderAll();
+  renderRecords();
+});
 </script>
 </body>
 </html>
