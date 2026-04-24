@@ -212,6 +212,60 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
 .toast.show { opacity: 1; top: 90px; }
 .toast.success { background: var(--green); }
 .toast.error { background: var(--red); }
+
+/* Records upgraded UI */
+.record-summary-card {
+  background: var(--text);
+  color: #fff;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+.record-summary-title { font-size: 12px; opacity: .65; margin-bottom: 6px; }
+.record-summary-main { font-size: 32px; font-weight: 700; letter-spacing: -0.8px; margin-bottom: 14px; }
+.record-summary-main.negative { color: #ff8a65; }
+.record-summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.record-summary-item { background: rgba(255,255,255,.1); border-radius: 12px; padding: 10px 12px; }
+.record-summary-label { font-size: 11px; opacity: .65; margin-bottom: 4px; }
+.record-summary-value { font-size: 16px; font-weight: 700; }
+.record-filter-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: .5px solid var(--border);
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.record-filter-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+.record-select {
+  width: 100%;
+  height: 42px;
+  border-radius: 11px;
+  border: .5px solid var(--border-md);
+  background: var(--bg);
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 600;
+  color: var(--text);
+  outline: none;
+}
+.quick-filter-row { display: flex; gap: 6px; }
+.quick-filter-btn {
+  flex: 1;
+  height: 34px;
+  border-radius: 999px;
+  border: .5px solid var(--border-md);
+  background: var(--surface);
+  font-size: 12px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-weight: 700;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.quick-filter-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+.record-count-note { font-size: 12px; color: var(--text-3); margin-top: 8px; text-align: center; }
+
 </style>
 </head>
 <body>
@@ -378,6 +432,34 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
 
     <div class="panel" id="panel-records">
       <div class="section" style="padding-top:12px">
+        <div class="record-summary-card">
+          <div class="record-summary-title" id="record-summary-title">全部記錄</div>
+          <div class="record-summary-main" id="record-summary-balance">NT$0</div>
+          <div class="record-summary-grid">
+            <div class="record-summary-item">
+              <div class="record-summary-label">收入</div>
+              <div class="record-summary-value" style="color:#6ee7c0" id="record-summary-income">NT$0</div>
+            </div>
+            <div class="record-summary-item">
+              <div class="record-summary-label">支出</div>
+              <div class="record-summary-value" style="color:#ffaa80" id="record-summary-expense">NT$0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="record-filter-card">
+          <div class="record-filter-row">
+            <select id="year-filter" class="record-select" onchange="clearQuickDateFilter(); renderRecords();"></select>
+            <select id="month-filter" class="record-select" onchange="clearQuickDateFilter(); renderRecords();"></select>
+          </div>
+          <div class="quick-filter-row">
+            <button class="quick-filter-btn active" id="quick-all" onclick="setQuickDateFilter('all')">全部</button>
+            <button class="quick-filter-btn" id="quick-this" onclick="setQuickDateFilter('this')">本月</button>
+            <button class="quick-filter-btn" id="quick-last" onclick="setQuickDateFilter('last')">上月</button>
+          </div>
+          <div class="record-count-note" id="record-count-note">—</div>
+        </div>
+
         <div class="section-header">
           <span class="section-title">所有記錄</span>
           <div class="filter-row">
@@ -458,6 +540,7 @@ const CATS_SAV=[{n:'定存',i:'🏦'},{n:'活存',i:'💵'},{n:'投資',i:'📈'
 const ICONS={};[...CATS_EXP,...CATS_INC,...CATS_SAV].forEach(c=>{if(!ICONS[c.n])ICONS[c.n]=c.i;});
 
 let rate=0.22,formCur='TWD',formType='expense',formCat='餐飲',recFilter='all';
+let quickDateFilter='all';
 let recFormCur='TWD',recFormType='expense',recFormCat='居家',editingRecId=null;
 let nextId=1,nextRecId=1,entries=[],recurring=[];
 let notionToken='',notionDbId='',notionEnabled=true;
@@ -1092,9 +1175,105 @@ function renderRecent(){
   el.innerHTML=recent.length?recent.map(e=>entryHTML(e,false)).join(''):'<div class="empty"><p>尚無記錄</p></div>';
 }
 
+function initRecordDateFilters(){
+  const yearEl=document.getElementById('year-filter');
+  const monthEl=document.getElementById('month-filter');
+  if(!yearEl||!monthEl)return;
+
+  const currentYear=yearEl.value;
+  const currentMonth=monthEl.value;
+  const years=[...new Set(entries.map(e=>(e.date||'').slice(0,4)).filter(Boolean))].sort().reverse();
+
+  yearEl.innerHTML='<option value="">全部年份</option>'+years.map(y=>`<option value="${y}">${y}年</option>`).join('');
+  monthEl.innerHTML='<option value="">全部月份</option>'+Array.from({length:12},(_,i)=>{
+    const m=String(i+1).padStart(2,'0');
+    return `<option value="${m}">${i+1}月</option>`;
+  }).join('');
+
+  if(years.includes(currentYear))yearEl.value=currentYear;
+  if(currentMonth)monthEl.value=currentMonth;
+}
+
+function clearQuickDateFilter(){
+  quickDateFilter='custom';
+  ['all','this','last'].forEach(id=>{
+    const btn=document.getElementById('quick-'+id);
+    if(btn)btn.className='quick-filter-btn';
+  });
+}
+
+function setQuickDateFilter(type){
+  quickDateFilter=type;
+  ['all','this','last'].forEach(id=>{
+    const btn=document.getElementById('quick-'+id);
+    if(btn)btn.className='quick-filter-btn'+(id===type?' active':'');
+  });
+
+  const yearEl=document.getElementById('year-filter');
+  const monthEl=document.getElementById('month-filter');
+  const now=new Date();
+  const target=new Date(now);
+
+  if(type==='all'){
+    if(yearEl)yearEl.value='';
+    if(monthEl)monthEl.value='';
+  }else{
+    if(type==='last')target.setMonth(target.getMonth()-1);
+    if(yearEl)yearEl.value=String(target.getFullYear());
+    if(monthEl)monthEl.value=String(target.getMonth()+1).padStart(2,'0');
+  }
+  renderRecords();
+}
+
+function getFilteredRecords(){
+  const yearEl=document.getElementById('year-filter');
+  const monthEl=document.getElementById('month-filter');
+  const y=yearEl?yearEl.value:'';
+  const m=monthEl?monthEl.value:'';
+  let shown=recFilter==='all'?entries:entries.filter(e=>e.type===recFilter);
+  if(y)shown=shown.filter(e=>(e.date||'').startsWith(y));
+  if(m)shown=shown.filter(e=>(e.date||'').slice(5,7)===m);
+  return shown;
+}
+
+function renderRecordSummary(data){
+  const income=data.filter(e=>e.type==='income').reduce((s,e)=>s+e.twd,0);
+  const expense=data.filter(e=>e.type==='expense').reduce((s,e)=>s+e.twd,0);
+  const savings=data.filter(e=>e.type==='savings').reduce((s,e)=>s+e.twd,0);
+  const balance=income-expense;
+
+  const yearEl=document.getElementById('year-filter');
+  const monthEl=document.getElementById('month-filter');
+  const y=yearEl?yearEl.value:'';
+  const m=monthEl?monthEl.value:'';
+  let title='全部記錄';
+  if(y&&m)title=`${y}年 ${Number(m)}月`;
+  else if(y)title=`${y}年`;
+  else if(m)title=`${Number(m)}月`;
+
+  const titleEl=document.getElementById('record-summary-title');
+  const balEl=document.getElementById('record-summary-balance');
+  const incEl=document.getElementById('record-summary-income');
+  const expEl=document.getElementById('record-summary-expense');
+  const noteEl=document.getElementById('record-count-note');
+  if(!titleEl||!balEl||!incEl||!expEl)return;
+
+  titleEl.textContent=title;
+  balEl.textContent=(balance<0?'-NT$':'NT$')+Math.abs(balance).toLocaleString();
+  balEl.className='record-summary-main'+(balance<0?' negative':'');
+  incEl.textContent='NT$'+income.toLocaleString();
+  expEl.textContent='NT$'+expense.toLocaleString();
+  if(noteEl){
+    const savText=savings>0?` · 存款 NT$${savings.toLocaleString()}`:'';
+    noteEl.textContent=`共 ${data.length} 筆${savText}`;
+  }
+}
+
 function renderRecords(){
-  const shown=recFilter==='all'?entries:entries.filter(e=>e.type===recFilter);
-  document.getElementById('all-list').innerHTML=shown.length?shown.map(e=>entryHTML(e,true)).join(''):'<div class="empty"><p>尚無記錄</p></div>';
+  initRecordDateFilters();
+  const shown=getFilteredRecords();
+  renderRecordSummary(shown);
+  document.getElementById('all-list').innerHTML=shown.length?shown.map(e=>entryHTML(e,true)).join(''):'<div class="empty"><p>這個期間沒有記錄</p></div>';
 }
 
 function setFilter(f){
