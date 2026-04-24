@@ -470,6 +470,53 @@ let nextId=1,nextRecId=1,entries=[],recurring=[];
 let notionEnabled=true;
 let savingsCardEnabled=false,savingsVisible=true;
 let chartPeriod='week';
+  async function loadFromNotion(){
+  try{
+    const res = await fetch('/api/notion', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ action: "list" })
+    });
+
+    const data = await res.json();
+
+    if(!res.ok || !data.results){
+      console.error(data);
+      return;
+    }
+
+    entries = data.results.map((p, idx) => {
+      const props = p.properties;
+
+      return {
+        id: idx + 1,
+        notionPageId: p.id,
+        type:
+          props['類型']?.select?.name === '收入' ? 'income' :
+          props['類型']?.select?.name === '存款' ? 'savings' :
+          'expense',
+        desc: props['名稱']?.title?.[0]?.plain_text || '未命名',
+        cat: props['類別']?.select?.name || '其他',
+        amount: props['金額']?.number || 0,
+        currency: props['幣別']?.select?.name || 'TWD',
+        twd: props['台幣金額']?.number || 0,
+        date: props['日期']?.date?.start || new Date().toISOString().slice(0,10),
+        notionSynced: true
+      };
+    });
+
+    nextId = entries.length + 1;
+    saveData();
+    renderAll();
+    renderRecords();
+    updateSyncPill();
+
+    showToast('已載入 Notion 最新資料', 'success');
+  }catch(e){
+    console.error(e);
+    showToast('讀取 Notion 失敗', 'error');
+  }
+}
 
 function showToast(msg,type){
   const el=document.getElementById('toast');
