@@ -20,10 +20,13 @@ export default async function handler(req, res) {
     };
 
     if (action === "test") {
-      const r = await fetch(`https://api.notion.com/v1/databases/${databaseId}`, {
-        method: "GET",
-        headers,
-      });
+      const r = await fetch(
+        `https://api.notion.com/v1/databases/${databaseId}`,
+        {
+          method: "GET",
+          headers,
+        }
+      );
 
       const text = await r.text();
       return res.status(r.status).send(text);
@@ -48,18 +51,21 @@ export default async function handler(req, res) {
     }
 
     if (action === "list") {
-      const r = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({
-          sorts: [
-            {
-              property: "日期",
-              direction: "descending",
-            },
-          ],
-        }),
-      });
+      const r = await fetch(
+        `https://api.notion.com/v1/databases/${databaseId}/query`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({
+            sorts: [
+              {
+                property: "日期",
+                direction: "descending",
+              },
+            ],
+          }),
+        }
+      );
 
       const text = await r.text();
       return res.status(r.status).send(text);
