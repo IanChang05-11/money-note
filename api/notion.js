@@ -3,32 +3,61 @@ export default async function handler(req, res) {
     return res.status(405).send("Method not allowed");
   }
 
-  const { action, data } = req.body;
+  const { action, data } = req.body || {};
+
+  const notionToken = process.env.NOTION_TOKEN;
+  const databaseId = process.env.NOTION_DATABASE_ID;
+
+  if (!notionToken || !databaseId) {
+    return res.status(500).json({
+      error: "Missing NOTION_TOKEN or NOTION_DATABASE_ID",
+    });
+  }
 
   const headers = {
-    Authorization: `Bearer ${process.env.NOTION_TOKEN}`,
+    Authorization: `Bearer ${notionToken}`,
     "Notion-Version": "2022-06-28",
     "Content-Type": "application/json",
   };
 
-  if (action === "test") {
-    const r = await fetch(
-      `https://api.notion.com/v1/databases/${process.env.NOTION_DATABASE_ID}`,
-      { method: "GET", headers }
-    );
+  try {
+    if (action === "test") {
+      const r = await fetch(
+        `https://api.notion.com/v1/databases/${databaseId}`,
+        {
+          method: "GET",
+          headers,
+        }
+      );
 
-    return res.status(r.status).send(await r.text());
-  }
+      const text = await r.text();
+      return res.status(r.status).send(text);
+    }
 
-  if (action === "add") {
-    const r = await fetch("https://api.notion.com/v1/pages", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(data),
+    if (action === "add") {
+      const payload = {
+        ...data,
+        parent: {
+          database_id: databaseId,
+        },
+      };
+
+      const r = await fetch("https://api.notion.com/v1/pages", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      });
+
+      const text = await r.text();
+      return res.status(r.status).send(text);
+    }
+
+    return res.status(400).json({
+      error: "Invalid action",
     });
-
-    return res.status(r.status).send(await r.text());
+  } catch (error) {
+    return res.status(500).json({
+      error: error.message || "Server error",
+    });
   }
-
-  return res.status(400).send("Invalid action");
 }
