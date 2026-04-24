@@ -1,74 +1,78 @@
 export default async function handler(req, res) {
+  const NOTION_TOKEN = process.env.NOTION_TOKEN;
+  const DATABASE_ID = process.env.NOTION_DATABASE_ID;
+
+  const headers = {
+    "Authorization": `Bearer ${NOTION_TOKEN}`,
+    "Notion-Version": "2022-06-28",
+    "Content-Type": "application/json"
+  };
+
   try {
-    if (req.method !== "POST") {
-      return res.status(405).send("Method not allowed");
-    }
+    const { action, data, pageId } = req.body || {};
 
-    const { action, data } = req.body || {};
-
-    const notionToken = process.env.NOTION_TOKEN;
-    const databaseId = process.env.NOTION_DATABASE_ID;
-
-    if (!notionToken || !databaseId) {
-      return res.status(500).send("Missing NOTION_TOKEN or NOTION_DATABASE_ID");
-    }
-
-    const headers = {
-      Authorization: `Bearer ${notionToken}`,
-      "Notion-Version": "2022-06-28",
-      "Content-Type": "application/json",
-    };
-
+    // 🔍 1. 測試連線
     if (action === "test") {
-      const r = await fetch(
-        `https://api.notion.com/v1/databases/${databaseId}`,
-        { method: "GET", headers }
+      return res.status(200).json({ ok: true });
+    }
+
+    // 📥 2. 讀取資料
+    if (action === "list") {
+      const notionRes = await fetch(
+        `https://api.notion.com/v1/databases/${DATABASE_ID}/query`,
+        {
+          method: "POST",
+          headers
+        }
       );
 
-      return res.status(r.status).send(await r.text());
+      const result = await notionRes.json();
+      return res.status(200).json(result);
     }
 
-    if (action === "list") {
-      const r = await fetch(
-        `https://api.notion.com/v1/databases/${databaseId}/query`,
+    // ➕ 3. 新增資料
+    if (action === "add") {
+      const notionRes = await fetch(
+        "https://api.notion.com/v1/pages",
         {
           method: "POST",
           headers,
           body: JSON.stringify({
-            page_size: 100,
-            sorts: [
-              {
-                property: "日期",
-                direction: "descending",
-              },
-            ],
-          }),
+            parent: { database_id: DATABASE_ID },
+            properties: data.properties
+          })
         }
       );
 
-      return res.status(r.status).send(await r.text());
+      const result = await notionRes.json();
+      return res.status(200).json(result);
     }
 
-    if (action === "add") {
-      const payload = {
-        ...data,
-        parent: {
-          database_id: databaseId,
-        },
-      };
+    // ❌ 4. 刪除（其實是 archive）
+    if (action === "delete") {
+      if (!pageId) {
+        return res.status(400).json({ error: "Missing pageId" });
+      }
 
-      const r = await fetch("https://api.notion.com/v1/pages", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-      });
+      const notionRes = await fetch(
+        `https://api.notion.com/v1/pages/${pageId}`,
+        {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify({
+            archived: true
+          })
+        }
+      );
 
-      return res.status(r.status).send(await r.text());
+      const result = await notionRes.json();
+      return res.status(200).json(result);
     }
 
-    return res.status(400).send("Invalid action");
+    return res.status(400).json({ error: "Invalid action" });
+
   } catch (err) {
-    console.error("API ERROR:", err);
-    return res.status(500).send(err.message || "Server error");
+    console.error(err);
+    return res.status(500).json({ error: "Server error" });
   }
 }
