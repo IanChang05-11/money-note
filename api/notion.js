@@ -1,4 +1,8 @@
 export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).send("Method not allowed");
+  }
+
   const { action, data } = req.body;
 
   const headers = {
@@ -10,8 +14,9 @@ export default async function handler(req, res) {
   if (action === "test") {
     const r = await fetch(
       `https://api.notion.com/v1/databases/${process.env.NOTION_DATABASE_ID}`,
-      { headers }
+      { method: "GET", headers }
     );
+
     return res.status(r.status).send(await r.text());
   }
 
@@ -21,6 +26,9 @@ export default async function handler(req, res) {
       headers,
       body: JSON.stringify(data),
     });
+
     return res.status(r.status).send(await r.text());
   }
+
+  return res.status(400).send("Invalid action");
 }
