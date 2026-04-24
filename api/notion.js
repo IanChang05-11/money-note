@@ -22,14 +22,31 @@ export default async function handler(req, res) {
     if (action === "test") {
       const r = await fetch(
         `https://api.notion.com/v1/databases/${databaseId}`,
+        { method: "GET", headers }
+      );
+
+      return res.status(r.status).send(await r.text());
+    }
+
+    if (action === "list") {
+      const r = await fetch(
+        `https://api.notion.com/v1/databases/${databaseId}/query`,
         {
-          method: "GET",
+          method: "POST",
           headers,
+          body: JSON.stringify({
+            page_size: 100,
+            sorts: [
+              {
+                property: "日期",
+                direction: "descending",
+              },
+            ],
+          }),
         }
       );
 
-      const text = await r.text();
-      return res.status(r.status).send(text);
+      return res.status(r.status).send(await r.text());
     }
 
     if (action === "add") {
@@ -46,29 +63,7 @@ export default async function handler(req, res) {
         body: JSON.stringify(payload),
       });
 
-      const text = await r.text();
-      return res.status(r.status).send(text);
-    }
-
-    if (action === "list") {
-      const r = await fetch(
-        `https://api.notion.com/v1/databases/${databaseId}/query`,
-        {
-          method: "POST",
-          headers,
-          body: JSON.stringify({
-            sorts: [
-              {
-                property: "日期",
-                direction: "descending",
-              },
-            ],
-          }),
-        }
-      );
-
-      const text = await r.text();
-      return res.status(r.status).send(text);
+      return res.status(r.status).send(await r.text());
     }
 
     return res.status(400).send("Invalid action");
