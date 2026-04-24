@@ -415,7 +415,7 @@ input[type="date"].form-input::-webkit-date-and-time-value { text-align: left; }
               1. Notion Token 與 Database ID 請設定在 Vercel Environment Variables。<br>
               2. 本頁資料以 Notion 為主，Notion 沒有的資料不會顯示。<br>
               3. 欄位需包含：<br>
-              &nbsp;&nbsp;<strong>名稱</strong>(Title) · <strong>類型</strong>(Select：收入/支出/存款) · <strong>金額</strong>(Number) · <strong>幣別</strong>(Select) · <strong>台幣金額</strong>(Number) · <strong>類別</strong>(Select) · <strong>日期</strong>(Date)
+              &nbsp;&nbsp;<strong>名稱</strong>(Title) · <strong>類型</strong>(Select：收入/支出/存款) · <strong>金額</strong>(Number) · <strong>幣別</strong>(Select) · <strong>台幣金額</strong>(Number) · <strong>類別</strong>(Select) · <strong>日期</strong>(Date) · <strong>是否固定</strong>(Checkbox)
             </div>
           </div>
         </div>
@@ -527,6 +527,7 @@ async function loadFromNotion(){
         currency: props['幣別']?.select?.name || 'TWD',
         twd: props['台幣金額']?.number || amount,
         date: date || new Date().toISOString().slice(0,10),
+        isRecurring: props['是否固定']?.checkbox || false,
         notionSynced: true
       };
     }).filter(Boolean);
@@ -715,7 +716,38 @@ function renderRecList(){
 }
 function renderRecSummary(){
   const el=document.getElementById('rec-summary');
-  el.innerHTML = `<div class="empty"><p>固定項目已改為 Notion 資料為主<br>不再讀取本機固定支出設定</p></div>`;
+  const fixed = entries.filter(e => e.isRecurring && e.type === 'expense');
+
+  if(!fixed.length){
+    el.innerHTML = '<div class="empty"><p>Notion 中沒有固定支出<br>請把資料庫的「是否固定」打勾</p></div>';
+    return;
+  }
+
+  const total = fixed.reduce((s,e)=>s+e.twd,0);
+  let html = `<div style="padding:14px 14px 8px">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">
+      <span style="font-size:13px;color:var(--text-2)">每月固定支出</span>
+      <span style="font-size:16px;font-weight:700;color:var(--red)">NT$${total.toLocaleString()}</span>
+    </div>
+  </div>`;
+
+  html += fixed.map(e=>{
+    const cur=e.currency==='JPY'?'¥':'NT$';
+    const sub=e.currency==='JPY'?`<div class="rec-amt-sub">≈ NT$${e.twd.toLocaleString()}</div>`:'';
+    return `<div class="entry">
+      <div class="entry-ico recurring">${ICONS[e.cat]||'📌'}</div>
+      <div class="entry-body">
+        <div class="entry-name">${e.desc}</div>
+        <div class="entry-meta">每月固定 · ${e.cat}</div>
+      </div>
+      <div class="entry-right">
+        <div class="entry-amt expense">${cur}${e.amount.toLocaleString()}</div>
+        ${sub}
+      </div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = html;
 }
 
 function renderSavings(){
@@ -906,13 +938,15 @@ function renderCats(){
 function entryHTML(e,showDel){
   const cur=e.currency==='JPY'?'¥':'NT$';
   const curBadge=e.currency==='JPY'?'<span class="badge badge-jpy">¥</span>':'';
+  const recBadge=e.isRecurring?'<span class="badge badge-recurring">🔁 固定</span>':'';
   const syncBadge=e.notionSynced?'<span class="badge badge-synced">☁ 已同步</span>':'<span class="badge badge-pending">⏱ 待同步</span>';
   const jpyLine=e.currency==='JPY'?`<div class="entry-twd">≈ NT$${e.twd.toLocaleString()}</div>`:'';
   const del=showDel?`<button class="del-btn" onclick="delEntry(${e.id})">×</button>`:'';
   let iconClass=e.type;
+  if(e.isRecurring && e.type!=='savings')iconClass='recurring';
   if(e.type==='savings')iconClass='savings';
   const sign=e.type==='income'?'+':e.type==='savings'?'→':'-';
-  return `<div class="entry"><div class="entry-ico ${iconClass}">${ICONS[e.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${e.desc}</div><div class="entry-meta">${e.cat} · ${e.date} ${curBadge} ${syncBadge}</div></div><div class="entry-right"><div class="entry-amt ${e.type}">${sign}${cur}${e.amount.toLocaleString()}</div>${jpyLine}</div>${del}</div>`;
+  return `<div class="entry"><div class="entry-ico ${iconClass}">${ICONS[e.cat]||'📌'}</div><div class="entry-body"><div class="entry-name">${e.desc}</div><div class="entry-meta">${e.cat} · ${e.date} ${curBadge} ${recBadge} ${syncBadge}</div></div><div class="entry-right"><div class="entry-amt ${e.type}">${sign}${cur}${e.amount.toLocaleString()}</div>${jpyLine}</div>${del}</div>`;
 }
 function renderRecent(){
   const el=document.getElementById('recent-card');
@@ -942,7 +976,8 @@ async function syncEntry(e){
         '幣別': {select:{name:e.currency || 'TWD'}},
         '台幣金額': {number:Number(e.twd) || 0},
         '類別': {select:{name:e.cat || '其他'}},
-        '日期': {date:{start:e.date || new Date().toISOString().slice(0,10)}}
+        '日期': {date:{start:e.date || new Date().toISOString().slice(0,10)}},
+        '是否固定': {checkbox: !!e.isRecurring}
       }
     };
     const res = await fetch('/api/notion', {
