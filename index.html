@@ -502,7 +502,73 @@ function loadData(){
     nextRecId=Math.max(recKid,recurring.reduce((m,r)=>Math.max(m,r.id),0)+1);
   }catch(e){loadDemo();}
 }
+async function loadFromNotion() {
+  try {
+    const res = await fetch('/api/notion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: "list" })
+    });
 
+    const data = await res.json();
+
+    if (!res.ok || !data.results) {
+      console.error(data);
+      showToast('讀取 Notion 失敗', 'error');
+      return false;
+    }
+
+    const notionEntries = data.results
+      .map((p, idx) => {
+        const props = p.properties || {};
+
+        const title = props['名稱']?.title?.[0]?.plain_text || '';
+        const amount = props['金額']?.number || 0;
+        const date = props['日期']?.date?.start || '';
+
+        if (!title && !amount && !date) return null;
+
+        const typeName = props['類型']?.select?.name || '支出';
+
+        return {
+          id: idx + 1,
+          notionPageId: p.id,
+          type:
+            typeName === '收入' ? 'income' :
+            typeName === '存款' ? 'savings' :
+            'expense',
+          desc: title || '未命名',
+          cat: props['類別']?.select?.name || '其他',
+          amount: amount,
+          currency: props['幣別']?.select?.name || 'TWD',
+          twd: props['台幣金額']?.number || amount,
+          date: date || new Date().toISOString().slice(0, 10),
+          notionSynced: true
+        };
+      })
+      .filter(Boolean);
+
+    entries = notionEntries;
+    recurring = [];
+    nextId = entries.length + 1;
+    nextRecId = 1;
+
+    localStorage.setItem('entries', JSON.stringify(entries));
+    localStorage.setItem('nextId', String(nextId));
+    localStorage.removeItem('recurring');
+    localStorage.removeItem('nextRecId');
+
+    renderAll();
+    renderRecords();
+    updateSyncPill();
+
+    return true;
+  } catch (e) {
+    console.error(e);
+    showToast('讀取 Notion 失敗', 'error');
+    return false;
+  }
+}
 function loadDemo(){
   const today=new Date();
   const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
